@@ -1,26 +1,199 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
+/* La clase .dark activa el tema oscuro (no se fuerza: la marca es clara por defecto). */
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Variantes de estado para las animaciones de Radix (carrito, buscador, menú).
+ * Radix emite `data-state="open|closed"`; los componentes shadcn usan
+ * `data-open:` / `data-closed:`. Sin estas variantes, los paneles aparecerían
+ * de golpe (sin animación de entrada/salida).
+ */
+@custom-variant data-open (&[data-state="open"]);
+@custom-variant data-closed (&[data-state="closed"]);
+
+/*
+ * ─────────────────────────────────────────────────────────────────────────
+ *  TOKENS DE DISEÑO — NUE INTIME
+ *  Toda la identidad visual (colores, tipografía, radios) vive aquí como
+ *  variables CSS. Para reajustar la marca, edita estos valores: el resto del
+ *  sitio los consume y se actualiza solo. Pensado para que, más adelante, un
+ *  panel de administración pueda sobrescribir estos valores en runtime.
+ * ─────────────────────────────────────────────────────────────────────────
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --radius: 0.625rem;
+
+  /* Superficies y texto (paleta monocroma de la marca: tinta sobre papel). */
+  --background: oklch(1 0 0); /* papel / blanco */
+  --foreground: oklch(0.145 0 0); /* tinta / casi negro */
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+
+  /* Color primario = tinta de marca (negro). */
+  --primary: oklch(0.145 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+
+  /* Secundario / silenciado / acento neutro. */
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+
+  --destructive: oklch(0.577 0.245 27.325);
+
+  /* Bordes, inputs y anillo de foco. */
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+
+  /* Tokens de marca explícitos (úsalos cuando quieras forzar tinta/papel). */
+  --brand-ink: oklch(0.145 0 0);
+  --brand-paper: oklch(1 0 0);
+
+  /*
+   * Barra de anuncios. Negra con texto blanco por defecto (según la marca).
+   * El panel de administración podrá sobrescribir estos valores; el componente
+   * también acepta colores por props para previsualizar cambios.
+   */
+  --announcement-background: var(--brand-ink);
+  --announcement-foreground: var(--brand-paper);
 }
 
+/* Tema oscuro disponible para uso futuro (no activo por defecto). */
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.985 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --brand-ink: oklch(0.985 0 0);
+  --brand-paper: oklch(0.145 0 0);
+  --announcement-background: oklch(0.985 0 0);
+  --announcement-foreground: oklch(0.145 0 0);
+}
+
+/*
+ * Mapeo de tokens a la escala de Tailwind v4. Esto habilita utilidades como
+ * `bg-background`, `text-foreground`, `font-display`, `rounded-lg`, etc.
+ */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-brand-ink: var(--brand-ink);
+  --color-brand-paper: var(--brand-paper);
+  --color-announcement: var(--announcement-background);
+  --color-announcement-foreground: var(--announcement-foreground);
+
+  /* Tipografía: tokens consumibles como `font-sans`, `font-display`, `font-mono`. */
+  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
+  --font-display: var(--font-jost), var(--font-geist-sans), sans-serif;
+  --font-mono: var(--font-geist-mono), monospace;
+
+  /* Radios derivados del radio base. */
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 12px);
+
+  /*
+   * Curvas de easing reutilizables (estética tipo iOS: respuesta inmediata y
+   * desaceleración suave). Úsalas con `ease-[var(--ease-out)]`, etc.
+   */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-ios: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+    /* Suavizado de fuentes para un acabado más cuidado. */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Respeta a quien prefiere menos movimiento: anula animaciones y scroll suave. */
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/*
+ * Animación de la barra de anuncios en modo marquesina. La duración la controla
+ * la variable `--marquee-duration` (configurable desde el componente / admin).
+ * Solo anima `transform` para mantenerla en GPU.
+ */
+@keyframes marquee-left {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes marquee-right {
+  from {
+    transform: translateX(-50%);
+  }
+  to {
+    transform: translateX(0);
+  }
 }
