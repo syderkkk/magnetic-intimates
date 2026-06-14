@@ -31,12 +31,13 @@ export default function HomePage() {
   return (
     <>
       {/* ── Hero ── */}
-      <section className="relative h-[80svh] min-h-136 w-full overflow-hidden">
+      <section className="relative h-[80svh] min-h-136 w-full overflow-hidden bg-neutral-900">
         <Image
-          src="https://picsum.photos/seed/nue-hero/1920/1280"
+          src="https://picsum.photos/seed/nue-hero/1600/1066"
           alt="Modelo con prendas de la nueva colección de NUE INTIME"
           fill
           priority
+          quality={70}
           sizes="100vw"
           className="object-cover"
         />

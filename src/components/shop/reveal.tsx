@@ -57,10 +57,11 @@ export function Reveal({ children, className, delayMs = 0 }: RevealProps) {
       ref={ref}
       style={delayMs ? { transitionDelay: `${delayMs}ms` } : undefined}
       className={cn(
-        "transition-[opacity,transform,filter] duration-800 ease-out will-change-transform motion-reduce:transition-none",
+        // Solo opacity + transform → animación compuesta en GPU (sin filter/blur).
+        "transition-[opacity,transform] duration-800 ease-out motion-reduce:transition-none",
         visible
-          ? "translate-y-0 opacity-100 blur-0"
-          : "translate-y-6 opacity-0 blur-[3px] motion-reduce:translate-y-0 motion-reduce:opacity-100 motion-reduce:blur-0",
+          ? "translate-y-0 opacity-100"
+          : "translate-y-6 opacity-0 motion-reduce:translate-y-0 motion-reduce:opacity-100",
         className,
       )}
     >
