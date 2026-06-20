@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 import { discountPercent, formatPrice } from "@/lib/money";
 import { cn } from "@/lib/utils";
@@ -36,7 +37,7 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
     : 0;
 
   return (
-    <article className="group flex flex-col">
+    <article className="group relative flex flex-col">
       <div className="relative aspect-4/5 w-full overflow-hidden rounded-xl bg-muted">
         {/* Imagen principal */}
         <Image
@@ -76,8 +77,8 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
         ) : null}
 
         {/* Botón agregar: oculto hasta el hover en dispositivos con puntero;
-            siempre visible en táctil (sin hover). */}
-        <div className="absolute inset-x-3 bottom-3 translate-y-0 opacity-100 transition-[opacity,transform] duration-300 ease-out [@media(hover:hover)]:translate-y-2 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:translate-y-0 [@media(hover:hover)]:group-hover:opacity-100">
+            siempre visible en táctil (sin hover). z-10 lo ubica sobre el overlay del link. */}
+        <div className="absolute inset-x-3 bottom-3 z-10 translate-y-0 opacity-100 transition-[opacity,transform] duration-300 ease-out [@media(hover:hover)]:translate-y-2 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:translate-y-0 [@media(hover:hover)]:group-hover:opacity-100">
           <AddToCartButton
             product={product}
             className="bg-background/90 text-foreground shadow-sm backdrop-blur-sm hover:bg-foreground hover:text-background active:scale-[0.98]"
@@ -91,7 +92,15 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
           <p className="text-[11px] tracking-wide text-muted-foreground uppercase">
             {product.category}
           </p>
-          <h3 className="mt-0.5 truncate text-sm font-medium">{product.name}</h3>
+          <h3 className="mt-0.5 truncate text-sm font-medium">
+            {/* Stretched link: el ::after cubre toda la tarjeta (z-[1]); el botón de carrito está en z-10. */}
+            <Link
+              href={`/producto/${product.slug}`}
+              className="after:absolute after:inset-0 after:z-[1] after:content-[''] focus-visible:outline-none"
+            >
+              {product.name}
+            </Link>
+          </h3>
         </div>
         <div className="shrink-0 text-right">
           <p className="text-sm font-medium tabular-nums">

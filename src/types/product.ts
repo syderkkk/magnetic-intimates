@@ -31,6 +31,7 @@ export interface Product {
   colors?: string[];
   /** Tallas disponibles. */
   sizes?: string[];
+  description?: string;
   isActive: boolean;
   isFeatured: boolean;
 }
