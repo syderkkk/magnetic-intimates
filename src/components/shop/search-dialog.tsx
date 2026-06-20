@@ -29,7 +29,9 @@ export function SearchDialog() {
     event.preventDefault();
     const term = query.trim();
     setOpen(false);
-    router.push(term ? `/tienda?q=${encodeURIComponent(term)}` : "/tienda");
+    router.push(
+      term ? `/tienda?q=${encodeURIComponent(term)}` : "/tienda",
+    );
   }
 
   return (

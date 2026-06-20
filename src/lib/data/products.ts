@@ -33,7 +33,20 @@ const products: Product[] = [
     badge: "oferta",
     colors: ["#0A0A0A", "#E7DCD3"],
     sizes: ["XS", "S", "M", "L"],
+    // Stock por variante (talla×color). Incluye una combinación agotada y otra
+    // con pocas unidades para mostrar el comportamiento de la ficha.
+    variants: [
+      { sku: "NUE-ESS-XS-NEG", size: "XS", color: "#0A0A0A", stock: 12 },
+      { sku: "NUE-ESS-XS-NUD", size: "XS", color: "#E7DCD3", stock: 0 },
+      { sku: "NUE-ESS-S-NEG", size: "S", color: "#0A0A0A", stock: 8 },
+      { sku: "NUE-ESS-S-NUD", size: "S", color: "#E7DCD3", stock: 15 },
+      { sku: "NUE-ESS-M-NEG", size: "M", color: "#0A0A0A", stock: 3 },
+      { sku: "NUE-ESS-M-NUD", size: "M", color: "#E7DCD3", stock: 10 },
+      { sku: "NUE-ESS-L-NEG", size: "L", color: "#0A0A0A", stock: 6 },
+      { sku: "NUE-ESS-L-NUD", size: "L", color: "#E7DCD3", stock: 0 },
+    ],
     description: "Conjunto de top y calzón con acabado satinado. Tela suave y transpirable, diseño esencial para el día a día.",
+    composition: "92% poliéster satinado, 8% elastano. Lavar a mano con agua fría, no usar lejía, secar a la sombra.",
     isActive: true,
     isFeatured: true,
   },

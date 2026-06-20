@@ -68,7 +68,7 @@ export function SiteFooter() {
           {/* Navegación */}
           <nav aria-label="Navegación del pie">
             <h2 className="text-xs font-medium tracking-wider text-muted-foreground uppercase">
-              Tienda
+              Explorar
             </h2>
             <ul className="mt-4 space-y-3 text-sm">
               {siteConfig.nav.map((link) => (

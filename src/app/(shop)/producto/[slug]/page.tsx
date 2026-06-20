@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { ProductStructuredData } from "@/components/seo/product-structured-data";
 import { ProductDetail } from "@/components/shop/product-detail";
 import { ProductGrid } from "@/components/shop/product-grid";
 import { Reveal } from "@/components/shop/reveal";
+import { slugify } from "@/lib/data/filters";
 import { getAllProducts, getProductBySlug } from "@/lib/data/products";
 
 interface Props {
@@ -39,26 +41,46 @@ export default async function ProductPage({ params }: Props) {
   const product = getProductBySlug(slug);
   if (!product) notFound();
 
-  const related = getAllProducts()
-    .filter((p) => p.category === product.category && p.id !== product.id)
-    .slice(0, 4);
+  // Relacionados: primero de la misma categoría; si faltan, se completan con
+  // otros productos activos hasta llegar a 4.
+  const sameCategory = getAllProducts().filter(
+    (p) => p.category === product.category && p.id !== product.id,
+  );
+  const fillers = getAllProducts().filter(
+    (p) => p.id !== product.id && p.category !== product.category,
+  );
+  const related = [...sameCategory, ...fillers].slice(0, 4);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
+      <ProductStructuredData product={product} />
+
       {/* Breadcrumb */}
       <nav
         aria-label="Ruta de navegación"
-        className="mb-8 flex items-center gap-2 text-sm text-muted-foreground"
+        className="mb-8 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground"
       >
-        <Link href="/" className="hover:text-foreground transition-colors">
+        <Link href="/" className="transition-colors hover:text-foreground">
           Inicio
         </Link>
         <span aria-hidden="true">/</span>
-        <Link href="/tienda" className="hover:text-foreground transition-colors">
+        <Link
+          href="/tienda"
+          className="transition-colors hover:text-foreground"
+        >
           Tienda
         </Link>
         <span aria-hidden="true">/</span>
-        <span className="text-foreground truncate max-w-[160px]">{product.name}</span>
+        <Link
+          href={`/tienda?cat=${slugify(product.category)}`}
+          className="transition-colors hover:text-foreground"
+        >
+          {product.category}
+        </Link>
+        <span aria-hidden="true">/</span>
+        <span className="max-w-40 truncate text-foreground">
+          {product.name}
+        </span>
       </nav>
 
       {/* Detalle principal */}

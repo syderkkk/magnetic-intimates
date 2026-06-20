@@ -66,7 +66,11 @@ export const siteConfig = {
   /** Locale para metadatos Open Graph. */
   locale: "es_PE",
 
-  /** Navegación principal. Por ahora solo Inicio y Tienda. */
+  /**
+   * Navegación principal. "Tienda" es el catálogo completo, en /tienda (etiqueta
+   * y URL coinciden). Las colecciones/campañas concretas vivirán bajo
+   * /coleccion/[slug] cuando existan, reutilizando la misma página de catálogo.
+   */
   nav: [
     { label: "Inicio", href: "/" },
     { label: "Tienda", href: "/tienda" },

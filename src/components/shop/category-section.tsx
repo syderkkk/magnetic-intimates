@@ -23,7 +23,7 @@ const SHOP_CATEGORIES = [
   },
   {
     name: "Lencería",
-    href: "/tienda?cat=lencer%C3%ADa",
+    href: "/tienda?cat=lenceria",
     imgSeed: "nue-cat-lenceria",
     description: "Diseño íntimo",
   },

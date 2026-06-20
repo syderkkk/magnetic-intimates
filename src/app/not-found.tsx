@@ -31,9 +31,9 @@ export default function NotFound() {
         </Link>
         <Link
           href="/tienda"
-          className="rounded-full border px-6 py-3 text-sm font-medium transition-colors hover:bg-muted"
+          className="rounded-full border px-6 py-3 text-sm font-medium transition-all duration-200 ease-out hover:border-foreground hover:bg-muted active:scale-[0.98]"
         >
-          Ir a la tienda
+          Ver la colección
         </Link>
       </div>
     </div>

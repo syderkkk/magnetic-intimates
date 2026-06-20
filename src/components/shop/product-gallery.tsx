@@ -1,0 +1,175 @@
+"use client";
+
+import { ChevronLeft, ChevronRight, X, ZoomIn } from "lucide-react";
+import Image from "next/image";
+import { useState } from "react";
+import { Dialog } from "radix-ui";
+
+import { cn } from "@/lib/utils";
+import type { ProductBadge, ProductImage } from "@/types/product";
+import { FavoriteButton } from "./favorite-button";
+
+const BADGE_LABELS: Record<ProductBadge, string> = {
+  nuevo: "Nuevo",
+  bestseller: "Más vendido",
+  oferta: "Oferta",
+};
+
+interface ProductGalleryProps {
+  images: ProductImage[];
+  productName: string;
+  badge?: ProductBadge;
+}
+
+/**
+ * Galería de la ficha de producto: imagen principal (con zoom/lightbox),
+ * miniaturas y superposiciones (badge + favorito). La imagen se encuadra en
+ * proporción 4:5 con `object-cover`, así cualquier resolución de subida del
+ * administrador se ve consistente. En el lightbox se usa `object-contain` para
+ * ver la prenda completa sin recortes.
+ */
+export function ProductGallery({
+  images,
+  productName,
+  badge,
+}: ProductGalleryProps) {
+  const [activeImg, setActiveImg] = useState(0);
+  const [zoomed, setZoomed] = useState(false);
+
+  const active = images[activeImg] ?? images[0];
+  const hasMany = images.length > 1;
+
+  function go(delta: number) {
+    setActiveImg((index) => (index + delta + images.length) % images.length);
+  }
+
+  if (!active) return null;
+
+  return (
+    <div className="flex flex-col gap-4 lg:sticky lg:top-24">
+      {/* Imagen principal */}
+      <div className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl bg-muted">
+        <Image
+          key={activeImg}
+          src={active.url}
+          alt={active.alt}
+          fill
+          priority
+          sizes="(max-width: 1024px) 100vw, 512px"
+          className="object-cover transition-opacity duration-300"
+        />
+
+        {/* Botón de zoom: cubre la imagen (debajo de badge y favorito). */}
+        <button
+          type="button"
+          onClick={() => setZoomed(true)}
+          aria-label="Ampliar imagen"
+          className="group absolute inset-0 cursor-zoom-in"
+        >
+          <span className="absolute right-3 bottom-3 flex size-9 items-center justify-center rounded-full bg-background/80 text-foreground opacity-0 shadow-sm backdrop-blur-sm transition-all duration-300 ease-out group-hover:opacity-100 [@media(hover:none)]:opacity-100">
+            <ZoomIn className="size-4" aria-hidden="true" />
+          </span>
+        </button>
+
+        {badge ? (
+          <span className="absolute top-3 left-3 z-10 rounded-full bg-foreground px-2.5 py-1 text-[10px] font-medium tracking-wider text-background uppercase">
+            {BADGE_LABELS[badge]}
+          </span>
+        ) : null}
+
+        <FavoriteButton
+          productName={productName}
+          className="absolute top-2.5 right-2.5 z-10"
+        />
+      </div>
+
+      {/* Miniaturas */}
+      {hasMany ? (
+        <div
+          className="flex flex-wrap gap-3"
+          role="group"
+          aria-label="Miniaturas del producto"
+        >
+          {images.map((img, i) => (
+            <button
+              key={img.url}
+              type="button"
+              onClick={() => setActiveImg(i)}
+              aria-label={`Ver imagen ${i + 1} de ${images.length}`}
+              aria-pressed={activeImg === i}
+              className={cn(
+                "relative aspect-[4/5] w-20 shrink-0 overflow-hidden rounded-xl bg-muted transition-all duration-200 ease-out focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none",
+                activeImg === i
+                  ? "ring-2 ring-foreground ring-offset-2"
+                  : "opacity-60 hover:opacity-100",
+              )}
+            >
+              <Image
+                src={img.url}
+                alt={img.alt}
+                fill
+                sizes="80px"
+                className="object-cover"
+              />
+            </button>
+          ))}
+        </div>
+      ) : null}
+
+      {/* Lightbox */}
+      <Dialog.Root open={zoomed} onOpenChange={setZoomed}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 z-50 bg-black/80 duration-300 data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0" />
+          <Dialog.Content className="fixed inset-0 z-50 flex flex-col items-center justify-center p-4 duration-300 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 focus:outline-none sm:p-8">
+            <Dialog.Title className="sr-only">{productName}</Dialog.Title>
+            <Dialog.Description className="sr-only">
+              Vista ampliada de las imágenes del producto
+            </Dialog.Description>
+
+            <div className="relative flex h-full max-h-[80vh] w-full max-w-3xl items-center justify-center">
+              <Image
+                key={`zoom-${activeImg}`}
+                src={active.url}
+                alt={active.alt}
+                fill
+                sizes="(max-width: 768px) 100vw, 768px"
+                className="object-contain"
+              />
+            </div>
+
+            {hasMany ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => go(-1)}
+                  aria-label="Imagen anterior"
+                  className="absolute top-1/2 left-3 flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 sm:left-6"
+                >
+                  <ChevronLeft className="size-5" aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => go(1)}
+                  aria-label="Imagen siguiente"
+                  className="absolute top-1/2 right-3 flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 sm:right-6"
+                >
+                  <ChevronRight className="size-5" aria-hidden="true" />
+                </button>
+                <span className="absolute bottom-5 rounded-full bg-white/10 px-3 py-1 text-xs text-white tabular-nums">
+                  {activeImg + 1} / {images.length}
+                </span>
+              </>
+            ) : null}
+
+            <Dialog.Close
+              aria-label="Cerrar"
+              className="absolute top-4 right-4 flex size-10 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+            >
+              <X className="size-5" aria-hidden="true" />
+            </Dialog.Close>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
+    </div>
+  );
+}
