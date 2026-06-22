@@ -1,3 +1,5 @@
+import { unstable_cache } from "next/cache";
+
 import { Prisma } from "@/generated/prisma/client";
 import { db } from "@/lib/db";
 import type { Product, ProductBadge, ProductVariant } from "@/types/product";
@@ -74,15 +76,28 @@ function toProduct(p: ProductWithRelations): Product {
   };
 }
 
-/** Devuelve todos los productos activos (orden de creación). */
-export async function getAllProducts(): Promise<Product[]> {
-  const products = await db.product.findMany({
-    where: { isActive: true },
-    include: PRODUCT_INCLUDE,
-    orderBy: { createdAt: "asc" },
-  });
-  return products.map(toProduct);
-}
+/**
+ * Devuelve todos los productos activos (orden de creación).
+ *
+ * Cacheado 60s para NO consultar Supabase en cada carga de /tienda (que es
+ * dinámica por los filtros de la URL): así la tienda se sirve rápido en vez de
+ * golpear la BD en cada visita. El catálogo cambia poco, así que una frescura de
+ * hasta 60s es aceptable (CLAUDE.md §6, tienda ISR 60s); los cambios del admin
+ * aparecen en la tienda pública en ≤60s (la ficha de producto sí es inmediata
+ * porque las acciones hacen `revalidatePath`).
+ */
+export const getAllProducts = unstable_cache(
+  async (): Promise<Product[]> => {
+    const products = await db.product.findMany({
+      where: { isActive: true },
+      include: PRODUCT_INCLUDE,
+      orderBy: { createdAt: "asc" },
+    });
+    return products.map(toProduct);
+  },
+  ["all-products"],
+  { revalidate: 60 },
+);
 
 /** Devuelve los productos destacados para la página de inicio. */
 export async function getFeaturedProducts(): Promise<Product[]> {
