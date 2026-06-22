@@ -23,13 +23,9 @@ function InstagramIcon({ className }: { className?: string }) {
   );
 }
 
-/** Enlaces de información/legal. Las páginas se construyen en la fase legal (v0.6). */
-const INFO_LINKS = [
-  { label: "Nosotros", href: "/nosotros" },
-  { label: "Contacto", href: "/contacto" },
-  { label: "Libro de Reclamaciones", href: "/libro-reclamaciones" },
-  { label: "Políticas y términos", href: "/terminos" },
-];
+// Los enlaces de información/legal (Nosotros, Contacto, Libro de Reclamaciones,
+// Términos) se mostrarán cuando existan esas páginas (fase legal). Por ahora se
+// omiten para no enlazar a 404.
 
 /** Pie de página del sitio. */
 export function SiteFooter() {
@@ -38,7 +34,7 @@ export function SiteFooter() {
   return (
     <footer className="border-t bg-background">
       <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 gap-10 md:grid-cols-4">
+        <div className="grid grid-cols-2 gap-10 md:grid-cols-3">
           {/* Marca */}
           <div className="col-span-2 md:col-span-2">
             <Link
@@ -49,8 +45,8 @@ export function SiteFooter() {
               <Logo />
             </Link>
             <p className="mt-4 max-w-xs text-sm text-muted-foreground">
-              Lencería y prendas íntimas con diseño minimalista. Calidad,
-              comodidad y elegancia.
+              Lencería y prendas íntimas que combinan calidad, comodidad y
+              elegancia.
             </p>
             <div className="mt-5 flex items-center gap-3">
               <Link
@@ -84,24 +80,6 @@ export function SiteFooter() {
             </ul>
           </nav>
 
-          {/* Información */}
-          <nav aria-label="Información">
-            <h2 className="text-xs font-medium tracking-wider text-muted-foreground uppercase">
-              Información
-            </h2>
-            <ul className="mt-4 space-y-3 text-sm">
-              {INFO_LINKS.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-foreground/80 transition-colors hover:text-foreground"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
         </div>
 
         <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t pt-6 text-xs text-muted-foreground sm:flex-row">

@@ -160,6 +160,18 @@
     text-rendering: optimizeLegibility;
   }
 
+  /*
+   * Cursor de mano en todo lo clicable. Tailwind v4 NO lo aplica a los <button>
+   * nativos por defecto (siguen el cursor por defecto del navegador), lo que
+   * hace que muchos botones se sientan "muertos". Esto lo corrige en todo el sitio.
+   */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  label:has(> input[type="radio"]:not(:disabled)),
+  label:has(> input[type="checkbox"]:not(:disabled)) {
+    cursor: pointer;
+  }
+
   /* Respeta a quien prefiere menos movimiento: anula animaciones y scroll suave. */
   @media (prefers-reduced-motion: reduce) {
     html {
@@ -169,6 +181,7 @@
     *::before,
     *::after {
       animation-duration: 0.01ms !important;
+      animation-delay: 0ms !important;
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
     }

@@ -16,6 +16,7 @@ import {
   siteConfig,
   type AnnouncementConfig,
   type AnnouncementIcon,
+  type AnnouncementSize,
 } from "@/config/site";
 import { usePrefersReducedMotion } from "@/hooks/use-prefers-reduced-motion";
 import { cn } from "@/lib/utils";
@@ -29,6 +30,13 @@ const ICONS: Record<Exclude<AnnouncementIcon, "none">, LucideIcon> = {
   heart: Heart,
   star: Star,
   package: Package,
+};
+
+/** Grosor de la cinta → alto y tamaño de texto. */
+const SIZE_CLASSES: Record<AnnouncementSize, string> = {
+  sm: "py-2 text-xs",
+  md: "py-2.5 text-sm",
+  lg: "py-3.5 text-sm sm:text-base",
 };
 
 interface AnnouncementBarProps {
@@ -89,7 +97,10 @@ export function AnnouncementBar({
       <aside
         aria-label="Anuncios"
         style={colorStyle}
-        className="flex w-full items-center justify-center overflow-hidden px-4 py-2 text-center text-xs tracking-wide"
+        className={cn(
+          "flex w-full items-center justify-center overflow-hidden px-4 text-center tracking-wide",
+          SIZE_CLASSES[config.size],
+        )}
       >
         <div className="flex flex-wrap items-center justify-center gap-x-1 gap-y-1">
           {config.items.map((item, index) => (
@@ -128,7 +139,10 @@ export function AnnouncementBar({
     <aside
       aria-label="Anuncios"
       style={colorStyle}
-      className="group/marquee w-full overflow-hidden py-2 text-xs tracking-wide"
+      className={cn(
+        "group/marquee w-full overflow-hidden tracking-wide",
+        SIZE_CLASSES[config.size],
+      )}
     >
       <div
         className={cn(

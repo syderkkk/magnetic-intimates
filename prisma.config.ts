@@ -8,6 +8,8 @@ export default defineConfig({
   migrations: {
     path: "prisma/migrations",
   },
+  // URL para la CLI de Prisma (migrate/studio). En runtime, el cliente usa un
+  // driver adapter (ver src/lib/db.ts), como exige Prisma 7.
   datasource: {
     url: process.env["DATABASE_URL"],
   },

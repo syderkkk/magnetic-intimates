@@ -6,13 +6,15 @@ import { siteConfig } from "@/config/site";
 import { fontVariables } from "@/lib/fonts";
 import "./globals.css";
 
-const TITLE = `${siteConfig.name} — Lencería y prendas íntimas`;
+// Título descriptivo solo para compartir enlaces (Open Graph / X). En la
+// pestaña del navegador se usa el nombre de la marca (ver `title.default`).
+const SHARE_TITLE = `${siteConfig.name} — Lencería y ropa íntima`;
 
 export const metadata: Metadata = {
   // Base para resolver URLs absolutas (canonical, Open Graph, etc.).
   metadataBase: new URL(siteConfig.url),
   title: {
-    default: TITLE,
+    default: siteConfig.name,
     template: `%s · ${siteConfig.name}`,
   },
   description: siteConfig.description,
@@ -35,13 +37,13 @@ export const metadata: Metadata = {
     locale: siteConfig.locale,
     url: siteConfig.url,
     siteName: siteConfig.name,
-    title: TITLE,
+    title: SHARE_TITLE,
     description: siteConfig.description,
   },
   // Tarjeta enriquecida para X/Twitter (la imagen la aporta twitter-image).
   twitter: {
     card: "summary_large_image",
-    title: TITLE,
+    title: SHARE_TITLE,
     description: siteConfig.description,
   },
   robots: {
@@ -70,7 +72,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className={`${fontVariables} h-full`} suppressHydrationWarning>
+    <html
+      lang="es"
+      className={`${fontVariables} h-full`}
+      // Indica a Next que gestione el scroll suave: al cambiar de ruta salta al
+      // tope al instante (sin animar media página) y conserva el scroll suave
+      // para anclas internas. Evita aterrizar a media página al navegar.
+      data-scroll-behavior="smooth"
+      suppressHydrationWarning
+    >
       <body className="flex min-h-full flex-col antialiased">
         {/* Enlace para saltar al contenido (accesibilidad / navegación por teclado). */}
         <a

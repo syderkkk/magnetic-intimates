@@ -1,4 +1,11 @@
-import { ArrowRight, RefreshCw, ShieldCheck, Truck } from "lucide-react";
+import {
+  ArrowRight,
+  ChevronDown,
+  RefreshCw,
+  ShieldCheck,
+  Truck,
+} from "lucide-react";
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -6,7 +13,14 @@ import { CategorySection } from "@/components/shop/category-section";
 import { ProductGrid } from "@/components/shop/product-grid";
 import { Reveal } from "@/components/shop/reveal";
 import { Button } from "@/components/ui/button";
-import { getFeaturedProducts } from "@/lib/data/products";
+import { getFeaturedProducts, getLatestProducts } from "@/lib/data/products";
+import { getSiteSettings, SETTING_KEYS } from "@/lib/site-settings";
+
+export const metadata: Metadata = {
+  description:
+    "Conjuntos, bodies, pijamas y lencería. Comodidad y elegancia, con envíos a todo el Perú.",
+  alternates: { canonical: "/" },
+};
 
 const VALUE_PROPS = [
   {
@@ -26,23 +40,43 @@ const VALUE_PROPS = [
   },
 ];
 
-export default function HomePage() {
-  const featured = getFeaturedProducts();
+export default async function HomePage() {
+  const [featured, latest, settings] = await Promise.all([
+    getFeaturedProducts(),
+    getLatestProducts(8),
+    getSiteSettings(),
+  ]);
+
+  // Novedades = lo más reciente que aún no aparece en Destacados (evita duplicar).
+  const featuredIds = new Set(featured.map((p) => p.id));
+  const novedades = latest.filter((p) => !featuredIds.has(p.id)).slice(0, 4);
+
+  // Portada gestionable desde el panel (Apariencia); con respaldos por defecto.
+  const heroImage = settings[SETTING_KEYS.heroImage];
+  const heroTitle =
+    settings[SETTING_KEYS.heroTitle] || "Esenciales que se sienten como tú";
+  const heroSubtitle =
+    settings[SETTING_KEYS.heroSubtitle] ||
+    "Lencería y prendas íntimas que combinan comodidad y elegancia, todos los días.";
 
   return (
     <>
       {/* ── Hero ── */}
-      <section className="relative h-[85svh] min-h-[560px] w-full overflow-hidden bg-neutral-900">
-        <Image
-          src="https://picsum.photos/seed/nue-hero/1600/1066"
-          alt="Modelo con prendas de la nueva colección de NUE INTIME"
-          fill
-          priority
-          quality={75}
-          sizes="100vw"
-          className="object-cover"
-        />
-        <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/25 to-black/35" />
+      <section className="relative h-[85svh] min-h-140 w-full overflow-hidden bg-neutral-950">
+        {heroImage ? (
+          <Image
+            src={heroImage}
+            alt=""
+            fill
+            priority
+            quality={90}
+            sizes="100vw"
+            className="object-cover"
+          />
+        ) : (
+          <div className="absolute inset-0 bg-linear-to-br from-neutral-800 via-neutral-950 to-black" />
+        )}
+        <div className="absolute inset-0 bg-linear-to-t from-black/65 via-black/25 to-black/30" />
 
         <div className="absolute inset-0 flex items-center">
           <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -51,11 +85,10 @@ export default function HomePage() {
                 Nueva colección
               </span>
               <h1 className="mt-5 font-display text-4xl leading-[1.05] font-semibold tracking-tight text-balance sm:text-5xl lg:text-6xl">
-                Esenciales que se sienten como tú
+                {heroTitle}
               </h1>
               <p className="mt-5 max-w-md text-base text-white/80 sm:text-lg">
-                Lencería y prendas íntimas con diseño minimalista. Comodidad y
-                elegancia, todos los días.
+                {heroSubtitle}
               </p>
               <div className="mt-8 flex flex-wrap items-center gap-4">
                 <Button
@@ -80,37 +113,74 @@ export default function HomePage() {
             </div>
           </div>
         </div>
+
+        {/* Indicador de scroll (respeta movimiento reducido vía globals.css). */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-6 flex justify-center">
+          <ChevronDown
+            className="size-6 animate-bounce text-white/60"
+            aria-hidden="true"
+          />
+        </div>
       </section>
 
-      {/* ── Destacados ── */}
-      <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
-        <Reveal>
-          <div className="flex items-end justify-between gap-4">
-            <div>
-              <span className="text-[11px] font-medium tracking-[0.2em] text-muted-foreground uppercase">
-                Selección
-              </span>
-              <h2 className="mt-2 font-display text-3xl font-semibold tracking-tight sm:text-4xl">
-                Destacados
-              </h2>
+      {/* ── Destacados ── (solo si hay productos destacados) */}
+      {featured.length > 0 ? (
+        <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
+          <Reveal>
+            <div className="flex items-end justify-between gap-4">
+              <div>
+                <span className="text-[11px] font-medium tracking-[0.2em] text-muted-foreground uppercase">
+                  Selección
+                </span>
+                <h2 className="mt-2 font-display text-3xl font-semibold tracking-tight sm:text-4xl">
+                  Destacados
+                </h2>
+              </div>
+              <Link
+                href="/tienda"
+                className="group inline-flex items-center gap-1.5 text-sm font-medium whitespace-nowrap transition-opacity hover:opacity-60"
+              >
+                Ver todo
+                <ArrowRight className="size-4 transition-transform duration-300 ease-out group-hover:translate-x-0.5" />
+              </Link>
             </div>
-            <Link
-              href="/tienda"
-              className="group inline-flex items-center gap-1.5 text-sm font-medium whitespace-nowrap transition-opacity hover:opacity-60"
-            >
-              Ver todo
-              <ArrowRight className="size-4 transition-transform duration-300 ease-out group-hover:translate-x-0.5" />
-            </Link>
-          </div>
-        </Reveal>
+          </Reveal>
 
-        <ProductGrid products={featured} className="mt-10" />
-      </section>
+          <ProductGrid products={featured} className="mt-10" />
+        </section>
+      ) : null}
 
       {/* ── Categorías ── */}
-      <div className="border-t">
-        <CategorySection />
-      </div>
+      <CategorySection />
+
+      {/* ── Novedades ── (recientes que no están en Destacados) */}
+      {novedades.length > 0 ? (
+        <section className="border-t">
+          <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
+            <Reveal>
+              <div className="flex items-end justify-between gap-4">
+                <div>
+                  <span className="text-[11px] font-medium tracking-[0.2em] text-muted-foreground uppercase">
+                    Recién llegado
+                  </span>
+                  <h2 className="mt-2 font-display text-3xl font-semibold tracking-tight sm:text-4xl">
+                    Novedades
+                  </h2>
+                </div>
+                <Link
+                  href="/tienda"
+                  className="group inline-flex items-center gap-1.5 text-sm font-medium whitespace-nowrap transition-opacity hover:opacity-60"
+                >
+                  Ver todo
+                  <ArrowRight className="size-4 transition-transform duration-300 ease-out group-hover:translate-x-0.5" />
+                </Link>
+              </div>
+            </Reveal>
+
+            <ProductGrid products={novedades} className="mt-10" />
+          </div>
+        </section>
+      ) : null}
 
       {/* ── Propuestas de valor ── */}
       <section className="border-t">

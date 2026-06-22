@@ -68,9 +68,24 @@ export const useCartStore = create<CartState>()(
 
       clear: () => set({ items: [] }),
     }),
-    { name: "nue-cart" },
+    {
+      name: "nue-cart",
+      // Subir la versión descarta carritos viejos (p. ej. con imágenes de
+      // hosts ya no permitidos en next.config) y evita que rompan el render.
+      version: 1,
+      migrate: (persisted) => ({ ...(persisted as CartState), items: [] }),
+    },
   ),
 );
+
+/**
+ * URL segura para mostrar la imagen de un ítem del carrito. Solo permite rutas
+ * locales del sitio; cualquier otra (p. ej. una URL antigua de un host ya no
+ * configurado) cae al placeholder, evitando que `next/image` rompa el render.
+ */
+export function cartImageSrc(url: string): string {
+  return url.startsWith("/") ? url : "/placeholder.svg";
+}
 
 /** Cantidad total de unidades en el carrito. */
 export function useCartCount(): number {

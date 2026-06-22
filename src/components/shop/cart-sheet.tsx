@@ -18,6 +18,7 @@ import {
 import { useHasMounted } from "@/hooks/use-has-mounted";
 import { formatPrice } from "@/lib/money";
 import {
+  cartImageSrc,
   useCartCount,
   useCartStore,
   useCartSubtotal,
@@ -116,7 +117,7 @@ export function CartSheet() {
                       aria-hidden="true"
                     >
                       <Image
-                        src={line.image}
+                        src={cartImageSrc(line.image)}
                         alt={line.imageAlt}
                         fill
                         sizes="80px"

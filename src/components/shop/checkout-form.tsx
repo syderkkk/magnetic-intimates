@@ -27,6 +27,7 @@ import { computeOrderSummary } from "@/lib/cart-totals";
 import { formatPrice } from "@/lib/money";
 import { checkoutSchema, type CheckoutValues } from "@/schemas/checkout";
 import {
+  cartImageSrc,
   useCartCount,
   useCartStore,
   useCartSubtotal,
@@ -275,7 +276,7 @@ export function CheckoutForm() {
                     >
                       <div className="relative aspect-4/5 w-16 shrink-0 overflow-hidden rounded-lg bg-muted">
                         <Image
-                          src={line.image}
+                          src={cartImageSrc(line.image)}
                           alt={line.imageAlt}
                           fill
                           sizes="64px"

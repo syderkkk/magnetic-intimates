@@ -37,8 +37,8 @@ export function SiteHeader() {
           : "border-transparent bg-background",
       )}
     >
-      <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-2 px-4 sm:px-6 lg:px-8">
-        {/* Izquierda: navegación (escritorio) / hamburguesa (móvil) */}
+      <div className="mx-auto grid h-14 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-2 px-4 sm:px-6 lg:px-8">
+        {/* Izquierda: navegación (escritorio) / hamburguesa (móvil). */}
         <div className="flex items-center justify-start gap-1">
           <MobileNav />
           <nav

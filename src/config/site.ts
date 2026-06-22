@@ -28,7 +28,10 @@ export interface AnnouncementItem {
   icon?: AnnouncementIcon;
 }
 
-/** Configuración completa de la barra de anuncios (editable desde admin a futuro). */
+/** Grosor visual de la cinta (alto + tamaño de texto). */
+export type AnnouncementSize = "sm" | "md" | "lg";
+
+/** Configuración completa de la barra de anuncios (administrable desde el panel). */
 export interface AnnouncementConfig {
   /** Si está desactivada, la barra no se renderiza. */
   enabled: boolean;
@@ -40,9 +43,11 @@ export interface AnnouncementConfig {
   speedSeconds: number;
   /** Pausa el desplazamiento al pasar el cursor. */
   pauseOnHover: boolean;
-  /** Color de fondo (cualquier color CSS válido). */
+  /** Grosor de la cinta. */
+  size: AnnouncementSize;
+  /** Color de fondo (hex). */
   background: string;
-  /** Color del texto (cualquier color CSS válido). */
+  /** Color del texto (hex). */
   foreground: string;
   /** Mensajes a mostrar. */
   items: AnnouncementItem[];
@@ -60,7 +65,7 @@ export const siteConfig = {
   shortName: "NUE",
   /** Descripción usada en SEO y al compartir enlaces. */
   description:
-    "NUE INTIME — lencería y prendas íntimas con diseño minimalista. Calidad, comodidad y elegancia. Envíos a todo el Perú.",
+    "NUE INTIME — lencería y prendas íntimas. Calidad, comodidad y elegancia. Envíos a todo el Perú.",
   /** URL pública del sitio (se usa como base para SEO y enlaces absolutos). */
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
   /** Locale para metadatos Open Graph. */
@@ -93,8 +98,9 @@ export const siteConfig = {
     direction: "left",
     speedSeconds: 30,
     pauseOnHover: true,
-    background: "var(--brand-ink)",
-    foreground: "var(--brand-paper)",
+    size: "sm",
+    background: "#0a0a0a",
+    foreground: "#ffffff",
     items: [
       { id: "envios", text: "Envíos a todo el Perú", icon: "truck" },
       {

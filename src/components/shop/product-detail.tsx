@@ -96,7 +96,6 @@ export function ProductDetail({ product }: { product: Product }) {
     if (hardDisabled) return;
 
     const img = product.images[0];
-    if (!img) return;
 
     const variantLabel =
       [selectedColor ? getColorName(selectedColor) : null, selectedSize]
@@ -112,8 +111,8 @@ export function ProductDetail({ product }: { product: Product }) {
         slug: product.slug,
         name: product.name,
         unitPriceCents: currentPriceCents,
-        image: img.url,
-        imageAlt: img.alt,
+        image: img?.url ?? "/placeholder.svg",
+        imageAlt: img?.alt ?? product.name,
         variantLabel,
       },
       quantity,

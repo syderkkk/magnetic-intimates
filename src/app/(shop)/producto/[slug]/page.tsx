@@ -13,20 +13,21 @@ interface Props {
   params: Promise<{ slug: string }>;
 }
 
-export function generateStaticParams() {
-  return getAllProducts().map((p) => ({ slug: p.slug }));
+export async function generateStaticParams() {
+  const products = await getAllProducts();
+  return products.map((p) => ({ slug: p.slug }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const product = getProductBySlug(slug);
+  const product = await getProductBySlug(slug);
   if (!product) return {};
 
   return {
     title: product.name,
     description:
       product.description ??
-      `Compra ${product.name} en NUE INTIME. Diseño minimalista, envíos a todo el Perú.`,
+      `Compra ${product.name} en NUE INTIME. Calidad y comodidad, con envíos a todo el Perú.`,
     alternates: { canonical: `/producto/${slug}` },
     openGraph: {
       images: product.images[0]
@@ -38,15 +39,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ProductPage({ params }: Props) {
   const { slug } = await params;
-  const product = getProductBySlug(slug);
+  const product = await getProductBySlug(slug);
   if (!product) notFound();
 
   // Relacionados: primero de la misma categoría; si faltan, se completan con
   // otros productos activos hasta llegar a 4.
-  const sameCategory = getAllProducts().filter(
+  const all = await getAllProducts();
+  const sameCategory = all.filter(
     (p) => p.category === product.category && p.id !== product.id,
   );
-  const fillers = getAllProducts().filter(
+  const fillers = all.filter(
     (p) => p.id !== product.id && p.category !== product.category,
   );
   const related = [...sameCategory, ...fillers].slice(0, 4);

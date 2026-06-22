@@ -32,6 +32,16 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
+
+# local sqlite database (etapa actual)
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+
+# imágenes subidas desde el admin (storage local de desarrollo)
+/public/uploads
 
 # vercel
 .vercel

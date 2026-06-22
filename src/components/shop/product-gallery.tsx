@@ -8,6 +8,7 @@ import { Dialog } from "radix-ui";
 import { cn } from "@/lib/utils";
 import type { ProductBadge, ProductImage } from "@/types/product";
 import { FavoriteButton } from "./favorite-button";
+import { NoImage } from "./no-image";
 
 const BADGE_LABELS: Record<ProductBadge, string> = {
   nuevo: "Nuevo",
@@ -35,20 +36,50 @@ export function ProductGallery({
 }: ProductGalleryProps) {
   const [activeImg, setActiveImg] = useState(0);
   const [zoomed, setZoomed] = useState(false);
+  const [magnified, setMagnified] = useState(false);
+  const [origin, setOrigin] = useState({ x: 50, y: 50 });
 
   const active = images[activeImg] ?? images[0];
   const hasMany = images.length > 1;
 
   function go(delta: number) {
+    setMagnified(false);
     setActiveImg((index) => (index + delta + images.length) % images.length);
   }
 
-  if (!active) return null;
+  /** Posición del cursor (en %) dentro de un elemento, para el punto de zoom. */
+  function pointerPercent(event: React.MouseEvent<HTMLDivElement>) {
+    const rect = event.currentTarget.getBoundingClientRect();
+    return {
+      x: ((event.clientX - rect.left) / rect.width) * 100,
+      y: ((event.clientY - rect.top) / rect.height) * 100,
+    };
+  }
+
+  // Producto sin imágenes todavía (se suben desde el panel).
+  if (!active) {
+    return (
+      <div className="lg:sticky lg:top-24">
+        <div className="relative aspect-4/5 w-full overflow-hidden rounded-2xl bg-muted">
+          <NoImage className="absolute inset-0 size-full" />
+          {badge ? (
+            <span className="absolute top-3 left-3 z-10 rounded-full bg-foreground px-2.5 py-1 text-[10px] font-medium tracking-wider text-background uppercase">
+              {BADGE_LABELS[badge]}
+            </span>
+          ) : null}
+          <FavoriteButton
+            productName={productName}
+            className="absolute top-2.5 right-2.5 z-10"
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-4 lg:sticky lg:top-24">
       {/* Imagen principal */}
-      <div className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl bg-muted">
+      <div className="relative aspect-4/5 w-full overflow-hidden rounded-2xl bg-muted">
         <Image
           key={activeImg}
           src={active.url}
@@ -98,7 +129,7 @@ export function ProductGallery({
               aria-label={`Ver imagen ${i + 1} de ${images.length}`}
               aria-pressed={activeImg === i}
               className={cn(
-                "relative aspect-[4/5] w-20 shrink-0 overflow-hidden rounded-xl bg-muted transition-all duration-200 ease-out focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none",
+                "relative aspect-4/5 w-20 shrink-0 overflow-hidden rounded-xl bg-muted transition-all duration-200 ease-out focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none",
                 activeImg === i
                   ? "ring-2 ring-foreground ring-offset-2"
                   : "opacity-60 hover:opacity-100",
@@ -117,7 +148,13 @@ export function ProductGallery({
       ) : null}
 
       {/* Lightbox */}
-      <Dialog.Root open={zoomed} onOpenChange={setZoomed}>
+      <Dialog.Root
+        open={zoomed}
+        onOpenChange={(open) => {
+          setZoomed(open);
+          if (!open) setMagnified(false);
+        }}
+      >
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 z-50 bg-black/80 duration-300 data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0" />
           <Dialog.Content className="fixed inset-0 z-50 flex flex-col items-center justify-center p-4 duration-300 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 focus:outline-none sm:p-8">
@@ -126,16 +163,36 @@ export function ProductGallery({
               Vista ampliada de las imágenes del producto
             </Dialog.Description>
 
-            <div className="relative flex h-full max-h-[80vh] w-full max-w-3xl items-center justify-center">
+            <div
+              onClick={(event) => {
+                setOrigin(pointerPercent(event));
+                setMagnified((value) => !value);
+              }}
+              onMouseMove={(event) => {
+                if (magnified) setOrigin(pointerPercent(event));
+              }}
+              className={cn(
+                "relative flex h-full max-h-[85vh] w-full max-w-3xl items-center justify-center overflow-hidden",
+                magnified ? "cursor-zoom-out" : "cursor-zoom-in",
+              )}
+            >
               <Image
                 key={`zoom-${activeImg}`}
                 src={active.url}
                 alt={active.alt}
                 fill
-                sizes="(max-width: 768px) 100vw, 768px"
-                className="object-contain"
+                sizes="(max-width: 768px) 100vw, 1024px"
+                className="object-contain transition-transform duration-200 ease-out"
+                style={{
+                  transform: magnified ? "scale(2.2)" : "scale(1)",
+                  transformOrigin: `${origin.x}% ${origin.y}%`,
+                }}
               />
             </div>
+            {/* Pista de uso del zoom */}
+            <span className="pointer-events-none absolute top-4 left-1/2 -translate-x-1/2 rounded-full bg-white/10 px-3 py-1 text-xs text-white">
+              {magnified ? "Clic para alejar" : "Clic en la imagen para acercar"}
+            </span>
 
             {hasMany ? (
               <>

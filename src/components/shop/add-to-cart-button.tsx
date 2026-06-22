@@ -32,7 +32,6 @@ export function AddToCartButton({ product, className }: AddToCartButtonProps) {
 
   function handleClick() {
     const primary = product.images[0];
-    if (!primary) return;
 
     addItem({
       key: product.id,
@@ -40,8 +39,8 @@ export function AddToCartButton({ product, className }: AddToCartButtonProps) {
       slug: product.slug,
       name: product.name,
       unitPriceCents: product.priceCents,
-      image: primary.url,
-      imageAlt: primary.alt,
+      image: primary?.url ?? "/placeholder.svg",
+      imageAlt: primary?.alt ?? product.name,
     });
 
     setAdded(true);

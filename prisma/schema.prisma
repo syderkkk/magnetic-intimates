@@ -1,7 +1,11 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
+// Esquema de datos de NUE INTIME (CLAUDE.md §4). 24 tablas.
+//
+// NOTA SOBRE SQLITE (etapa actual, "por ahora"): SQLite no soporta `enum` ni
+// `Json` nativos de Prisma, así que los estados/tipos se modelan como `String`
+// (con valores válidos documentados y validados en la app con Zod) y los campos
+// JSON se guardan como texto. El dinero va en CÉNTIMOS enteros (`Int`), según la
+// decisión del proyecto. Al migrar a PostgreSQL, estos campos pueden volverse
+// `enum`/`Json`/`Decimal` sin cambiar la lógica de la aplicación.
 
 generator client {
   provider = "prisma-client"
@@ -9,5 +13,390 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
+}
+
+// ─────────────────────────────── Usuarios y acceso ───────────────────────────
+
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique // admin | editor | customer
+  description String?
+  users       User[]
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("roles")
+}
+
+model User {
+  id           String            @id @default(cuid())
+  email        String            @unique
+  name         String?
+  passwordHash String?           @map("password_hash") // argon2id (null para OAuth futuro)
+  phone        String?
+  isActive     Boolean           @default(true) @map("is_active")
+  roleId       String            @map("role_id")
+  role         Role              @relation(fields: [roleId], references: [id])
+  sessions     Session[]
+  carts        Cart[]
+  orders       Order[]
+  addresses    ShippingAddress[]
+  auditLogs    AuditLog[]
+  createdAt    DateTime          @default(now()) @map("created_at")
+  updatedAt    DateTime          @updatedAt @map("updated_at")
+
+  @@index([roleId])
+  @@map("users")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expires      DateTime
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+// ─────────────────────────────────── Catálogo ────────────────────────────────
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?
+  imageUrl    String?   @map("image_url")
+  position    Int       @default(0)
+  isActive    Boolean   @default(true) @map("is_active")
+  products    Product[]
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@index([slug])
+  @@map("categories")
+}
+
+model Product {
+  id                  String           @id @default(cuid())
+  name                String
+  slug                String           @unique
+  description         String?
+  composition         String?
+  priceCents          Int              @map("price_cents")
+  compareAtPriceCents Int?             @map("compare_at_price_cents")
+  badge               String?          // nuevo | bestseller | oferta
+  categoryId          String           @map("category_id")
+  category            Category         @relation(fields: [categoryId], references: [id])
+  isActive            Boolean          @default(true) @map("is_active")
+  isFeatured          Boolean          @default(false) @map("is_featured")
+  variants            ProductVariant[]
+  images              ProductImage[]
+  createdAt           DateTime         @default(now()) @map("created_at")
+  updatedAt           DateTime         @updatedAt @map("updated_at")
+
+  @@index([slug])
+  @@index([categoryId])
+  @@map("products")
+}
+
+model Size {
+  id       String           @id @default(cuid())
+  name     String           @unique // XS, S, M, L, XL, Único
+  position Int              @default(0)
+  variants ProductVariant[]
+
+  @@map("sizes")
+}
+
+model Color {
+  id       String           @id @default(cuid())
+  name     String           @unique
+  hex      String
+  position Int              @default(0)
+  variants ProductVariant[]
+
+  @@map("colors")
+}
+
+model ProductVariant {
+  id         String     @id @default(cuid())
+  sku        String     @unique
+  productId  String     @map("product_id")
+  product    Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  sizeId     String?    @map("size_id")
+  size       Size?      @relation(fields: [sizeId], references: [id])
+  colorId    String?    @map("color_id")
+  color      Color?     @relation(fields: [colorId], references: [id])
+  stock      Int        @default(0)
+  priceCents Int?       @map("price_cents") // si falta, usa el precio del producto
+  cartItems  CartItem[]
+  createdAt  DateTime   @default(now()) @map("created_at")
+  updatedAt  DateTime   @updatedAt @map("updated_at")
+
+  @@unique([productId, sizeId, colorId])
+  @@index([sku])
+  @@map("product_variants")
+}
+
+// ───────────────────────────────────── Media ─────────────────────────────────
+
+model Media {
+  id        String   @id @default(cuid())
+  url       String
+  alt       String
+  width     Int?
+  height    Int?
+  type      String? // image/webp, image/avif...
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("media")
+}
+
+model ProductImage {
+  id        String  @id @default(cuid())
+  productId String  @map("product_id")
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url       String
+  alt       String
+  position  Int     @default(0)
+  isPrimary Boolean @default(false) @map("is_primary")
+
+  @@index([productId])
+  @@map("product_images")
+}
+
+// ───────────────────────────────────── Carrito ───────────────────────────────
+
+model Cart {
+  id        String     @id @default(cuid())
+  userId    String?    @map("user_id")
+  user      User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+  sessionId String?    @map("session_id")
+  items     CartItem[]
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+
+  @@index([sessionId])
+  @@map("carts")
+}
+
+model CartItem {
+  id        String         @id @default(cuid())
+  cartId    String         @map("cart_id")
+  cart      Cart           @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  variantId String         @map("variant_id")
+  variant   ProductVariant @relation(fields: [variantId], references: [id])
+  quantity  Int            @default(1)
+  createdAt DateTime       @default(now()) @map("created_at")
+
+  @@unique([cartId, variantId])
+  @@map("cart_items")
+}
+
+// ───────────────────────────────────── Ventas ────────────────────────────────
+
+model Order {
+  id                String           @id @default(cuid())
+  number            Int              @unique // correlativo (lo asigna la app)
+  status            String           @default("pendiente") // máquina de estados §11.2
+  userId            String?          @map("user_id")
+  user              User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+  // Datos del comprador (snapshot)
+  email             String
+  customerName      String           @map("customer_name")
+  phone             String
+  // Totales en céntimos
+  subtotalCents     Int              @map("subtotal_cents")
+  shippingCents     Int              @default(0) @map("shipping_cents")
+  taxCents          Int              @default(0) @map("tax_cents")
+  discountCents     Int              @default(0) @map("discount_cents")
+  totalCents        Int              @map("total_cents")
+  shippingAddressId String?          @map("shipping_address_id")
+  shippingAddress   ShippingAddress? @relation(fields: [shippingAddressId], references: [id])
+  shippingMethodId  String?          @map("shipping_method_id")
+  shippingMethod    ShippingMethod?  @relation(fields: [shippingMethodId], references: [id])
+  couponId          String?          @map("coupon_id")
+  coupon            Coupon?          @relation(fields: [couponId], references: [id])
+  items             OrderItem[]
+  payments          Payment[]
+  createdAt         DateTime         @default(now()) @map("created_at")
+  updatedAt         DateTime         @updatedAt @map("updated_at")
+
+  @@index([status])
+  @@index([userId])
+  @@map("orders")
+}
+
+model OrderItem {
+  id             String  @id @default(cuid())
+  orderId        String  @map("order_id")
+  order          Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  variantId      String? @map("variant_id") // referencia débil; manda el snapshot
+  // Snapshot al momento de la compra (no referencias vivas)
+  productName    String  @map("product_name")
+  variantLabel   String? @map("variant_label")
+  sku            String?
+  unitPriceCents Int     @map("unit_price_cents")
+  quantity       Int
+
+  @@index([orderId])
+  @@map("order_items")
+}
+
+model Payment {
+  id              String   @id @default(cuid())
+  orderId         String   @map("order_id")
+  order           Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  gateway         String   @default("izipay")
+  transactionId   String?  @map("transaction_id")
+  status          String // pendiente | aprobado | rechazado
+  amountCents     Int      @map("amount_cents")
+  gatewayResponse String?  @map("gateway_response") // JSON como texto (SQLite)
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@index([orderId])
+  @@map("payments")
+}
+
+model ShippingAddress {
+  id        String   @id @default(cuid())
+  userId    String?  @map("user_id")
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  fullName  String   @map("full_name")
+  phone     String
+  address   String
+  district  String
+  city      String
+  reference String?
+  orders    Order[]
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@map("shipping_addresses")
+}
+
+// ──────────────────────────── Envíos y promociones ───────────────────────────
+
+model ShippingMethod {
+  id        String   @id @default(cuid())
+  name      String
+  zone      String?
+  costCents Int      @default(0) @map("cost_cents")
+  etaDays   String?  @map("eta_days")
+  isActive  Boolean  @default(true) @map("is_active")
+  orders    Order[]
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("shipping_methods")
+}
+
+model Coupon {
+  id            String    @id @default(cuid())
+  code          String    @unique
+  type          String // percent | fixed
+  value         Int // porcentaje o céntimos, según `type`
+  minOrderCents Int?      @map("min_order_cents")
+  maxUses       Int?      @map("max_uses")
+  usedCount     Int       @default(0) @map("used_count")
+  startsAt      DateTime? @map("starts_at")
+  endsAt        DateTime? @map("ends_at")
+  isActive      Boolean   @default(true) @map("is_active")
+  orders        Order[]
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  @@index([code])
+  @@map("coupons")
+}
+
+// ──────────────────────────────────── CMS ────────────────────────────────────
+
+model Page {
+  id          String        @id @default(cuid())
+  slug        String        @unique
+  title       String
+  isPublished Boolean       @default(true) @map("is_published")
+  sections    PageSection[]
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  @@map("pages")
+}
+
+model PageSection {
+  id        String  @id @default(cuid())
+  pageId    String  @map("page_id")
+  page      Page    @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  title     String?
+  content   String?
+  imageUrl  String? @map("image_url")
+  bgColor   String? @map("bg_color")
+  textColor String? @map("text_color")
+  position  Int     @default(0)
+  isVisible Boolean @default(true) @map("is_visible")
+
+  @@index([pageId])
+  @@map("page_sections")
+}
+
+model SiteSetting {
+  id    String  @id @default(cuid())
+  key   String  @unique
+  value String?
+  type  String  @default("string") // string | number | boolean | json | color
+
+  @@map("site_settings")
+}
+
+// ───────────────────────────────── Legal y contacto ──────────────────────────
+
+model ContactSubmission {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  message   String
+  isRead    Boolean  @default(false) @map("is_read")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("contact_submissions")
+}
+
+model Complaint {
+  id           String   @id @default(cuid())
+  code         String   @unique // correlativo
+  type         String // reclamo | queja
+  customerName String   @map("customer_name")
+  email        String
+  phone        String?
+  documentId   String?  @map("document_id") // DNI
+  detail       String
+  status       String   @default("pendiente")
+  response     String?
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("complaints")
+}
+
+// ─────────────────────────────────── Auditoría ───────────────────────────────
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?  @map("user_id")
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action     String // created | updated | deleted | status_changed
+  entityType String   @map("entity_type")
+  entityId   String?  @map("entity_id")
+  changes    String? // JSON como texto (antes/después)
+  ipAddress  String?  @map("ip_address")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([entityType, entityId])
+  @@map("audit_logs")
 }

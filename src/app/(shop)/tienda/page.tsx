@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { CollectionStructuredData } from "@/components/seo/collection-structured-data";
+import { ActiveFilters } from "@/components/shop/active-filters";
 import { CollectionToolbar } from "@/components/shop/collection-toolbar";
 import { ProductFilters } from "@/components/shop/product-filters";
 import { ProductGrid } from "@/components/shop/product-grid";
@@ -16,7 +18,7 @@ import { getAllProducts } from "@/lib/data/products";
 export const metadata: Metadata = {
   title: "Tienda",
   description:
-    "Explora la colección de NUE INTIME: conjuntos, bodies, pijamas y lencería con diseño minimalista.",
+    "Explora la colección de NUE INTIME: conjuntos, bodies, pijamas y lencería con la mejor calidad y comodidad.",
   alternates: { canonical: "/tienda" },
 };
 
@@ -45,7 +47,7 @@ export default async function ColeccionPage({
   const sort = (sp.sort ?? "") as SortValue;
   const density = sp.view === "comfortable" ? "comfortable" : "compact";
 
-  const all = getAllProducts();
+  const all = await getAllProducts();
 
   // Las facetas se calculan sobre el catálogo acotado solo por la búsqueda de
   // texto (no por las selecciones), para poder marcar/desmarcar con libertad y
@@ -64,7 +66,8 @@ export default async function ColeccionPage({
     : `${products.length} ${products.length === 1 ? "producto" : "productos"}`;
 
   return (
-    <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
+    <section className="mx-auto max-w-7xl px-4 pt-2 pb-12 sm:px-6 lg:px-8 lg:pt-2 lg:pb-16">
+      <CollectionStructuredData products={products} />
       <header className="mb-8">
         <nav
           aria-label="Ruta de navegación"
@@ -101,6 +104,8 @@ export default async function ColeccionPage({
             density={density}
             activeFilterCount={activeFilterCount}
           />
+
+          <ActiveFilters facets={facets} selected={selected} query={query} />
 
           {products.length > 0 ? (
             <ProductGrid

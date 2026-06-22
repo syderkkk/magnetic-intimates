@@ -2,10 +2,12 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { discountPercent, formatPrice } from "@/lib/money";
+import { totalStock } from "@/lib/product-variants";
 import { cn } from "@/lib/utils";
 import type { Product, ProductBadge } from "@/types/product";
 import { AddToCartButton } from "./add-to-cart-button";
 import { FavoriteButton } from "./favorite-button";
+import { NoImage } from "./no-image";
 
 /** Etiquetas legibles para cada badge. */
 const BADGE_LABELS: Record<ProductBadge, string> = {
@@ -31,42 +33,60 @@ interface ProductCardProps {
  */
 export function ProductCard({ product, priority = false }: ProductCardProps) {
   const [primary, secondary] = product.images;
-  if (!primary) return null;
 
   const discount = product.compareAtPriceCents
     ? discountPercent(product.compareAtPriceCents, product.priceCents)
     : 0;
 
+  const soldOut = totalStock(product) <= 0;
+  // Si maneja tallas o colores, hay que elegir variante en la ficha (no quick-add).
+  const needsChoice =
+    (product.sizes?.length ?? 0) > 0 || (product.colors?.length ?? 0) > 0;
+
   return (
     <article className="group/card relative flex flex-col">
       <div className="relative aspect-4/5 w-full overflow-hidden bg-muted">
-        {/* Imagen principal */}
-        <Image
-          src={primary.url}
-          alt={primary.alt}
-          fill
-          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-          priority={priority}
-          className={cn(
-            "object-cover transition-[opacity,transform] duration-600 ease-out",
-            "group-hover/card:scale-[1.04]",
-            secondary && "group-hover/card:opacity-0",
-          )}
-        />
+        {primary ? (
+          <>
+            {/* Imagen principal */}
+            <Image
+              src={primary.url}
+              alt={primary.alt}
+              fill
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              priority={priority}
+              className={cn(
+                "object-cover transition-[opacity,transform] duration-600 ease-out",
+                "group-hover/card:scale-[1.04]",
+                secondary && "group-hover/card:opacity-0",
+              )}
+            />
 
-        {/* Imagen secundaria (se revela al hover/tap) */}
-        {secondary ? (
-          <Image
-            src={secondary.url}
-            alt={secondary.alt}
-            fill
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            className="object-cover opacity-0 transition-[opacity,transform] duration-600 ease-out group-hover/card:scale-[1.04] group-hover/card:opacity-100"
+            {/* Imagen secundaria (se revela al hover/tap) */}
+            {secondary ? (
+              <Image
+                src={secondary.url}
+                alt={secondary.alt}
+                fill
+                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                className="object-cover opacity-0 transition-[opacity,transform] duration-600 ease-out group-hover/card:scale-[1.04] group-hover/card:opacity-100"
+              />
+            ) : null}
+
+            {/* Sombreado inferior sutil al hover: mejora la legibilidad del botón. */}
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-linear-to-t from-black/15 to-transparent opacity-0 transition-opacity duration-300 group-hover/card:opacity-100" />
+          </>
+        ) : (
+          <NoImage className="absolute inset-0 size-full" />
+        )}
+
+        {/* Velo sutil cuando está agotado. */}
+        {soldOut ? (
+          <div
+            className="pointer-events-none absolute inset-0 bg-background/45"
+            aria-hidden="true"
           />
         ) : null}
-
-        {/* Sombreado inferior sutil al hover: mejora la legibilidad del botón. */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-linear-to-t from-black/15 to-transparent opacity-0 transition-opacity duration-300 group-hover/card:opacity-100" />
 
         {/* Badge (campaña / estado). Esquina superior izquierda, siempre visible. */}
         {product.badge ? (
@@ -80,14 +100,29 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
           <FavoriteButton productName={product.name} />
         </div>
 
-        {/* Botón agregar: oculto hasta el hover en dispositivos con puntero;
-            siempre visible en táctil (sin hover). z-10 lo ubica sobre el link. */}
-        <div className="absolute inset-x-2.5 bottom-2.5 z-10 translate-y-0 opacity-100 transition-[opacity,transform] duration-300 ease-out [@media(hover:hover)]:translate-y-2 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/card:translate-y-0 [@media(hover:hover)]:group-hover/card:opacity-100">
-          <AddToCartButton
-            product={product}
-            className="bg-background/90 text-foreground shadow-sm backdrop-blur-sm hover:bg-foreground hover:text-background active:scale-[0.98]"
-          />
-        </div>
+        {/* CTA inferior según disponibilidad y si requiere elegir variante.
+            En táctil siempre visible; en puntero, aparece al hover. */}
+        {soldOut ? (
+          <span className="pointer-events-none absolute inset-x-2.5 bottom-2.5 z-10 flex h-10 items-center justify-center rounded-full bg-background/90 text-xs font-medium text-muted-foreground shadow-sm backdrop-blur-sm">
+            Agotado
+          </span>
+        ) : needsChoice ? (
+          <div className="absolute inset-x-2.5 bottom-2.5 z-10 translate-y-0 opacity-100 transition-[opacity,transform] duration-300 ease-out [@media(hover:hover)]:translate-y-2 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/card:translate-y-0 [@media(hover:hover)]:group-hover/card:opacity-100">
+            <Link
+              href={`/producto/${product.slug}`}
+              className="relative z-10 flex h-10 w-full items-center justify-center rounded-full bg-background/90 text-xs font-medium text-foreground shadow-sm backdrop-blur-sm transition-colors hover:bg-foreground hover:text-background active:scale-[0.98]"
+            >
+              Elegir opciones
+            </Link>
+          </div>
+        ) : (
+          <div className="absolute inset-x-2.5 bottom-2.5 z-10 translate-y-0 opacity-100 transition-[opacity,transform] duration-300 ease-out [@media(hover:hover)]:translate-y-2 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/card:translate-y-0 [@media(hover:hover)]:group-hover/card:opacity-100">
+            <AddToCartButton
+              product={product}
+              className="bg-background/90 text-foreground shadow-sm backdrop-blur-sm hover:bg-foreground hover:text-background active:scale-[0.98]"
+            />
+          </div>
+        )}
       </div>
 
       {/* Información */}
