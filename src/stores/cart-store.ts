@@ -79,12 +79,16 @@ export const useCartStore = create<CartState>()(
 );
 
 /**
- * URL segura para mostrar la imagen de un ítem del carrito. Solo permite rutas
- * locales del sitio; cualquier otra (p. ej. una URL antigua de un host ya no
- * configurado) cae al placeholder, evitando que `next/image` rompa el render.
+ * URL segura para mostrar la imagen de un ítem del carrito. Permite rutas
+ * locales del sitio y las imágenes públicas de Supabase Storage; cualquier otra
+ * (p. ej. una URL antigua de un host ya no configurado) cae al placeholder,
+ * evitando que `next/image` rompa el render.
  */
 export function cartImageSrc(url: string): string {
-  return url.startsWith("/") ? url : "/placeholder.svg";
+  if (!url) return "/placeholder.svg";
+  if (url.startsWith("/")) return url; // local (placeholder, /uploads heredado)
+  if (url.includes("/storage/v1/object/public/")) return url; // Supabase Storage
+  return "/placeholder.svg";
 }
 
 /** Cantidad total de unidades en el carrito. */
