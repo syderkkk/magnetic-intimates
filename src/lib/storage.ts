@@ -1,50 +1,57 @@
 import "server-only";
 
-import { mkdir, unlink, writeFile } from "node:fs/promises";
-import path from "node:path";
+import { createClient } from "@supabase/supabase-js";
 
 /**
  * ─────────────────────────────────────────────────────────────────────────
- *  ALMACENAMIENTO DE ARCHIVOS (adaptador intercambiable)
- *  Etapa actual: filesystem local en `public/uploads`, servido como estático en
- *  `/uploads/...`. La lógica de validación/normalización de imágenes NO depende
- *  de esto. Cuando se decida el hosting (decisión #1), se reemplaza esta
- *  implementación por object storage (Cloudflare R2 / S3) sin tocar el resto:
- *  basta con cumplir la misma interfaz (`saveFile`/`deleteFile`).
- *
- *  NOTA: en hosts con filesystem efímero (Vercel/Railway) esto NO persiste; ahí
- *  es obligatorio el object storage. Sirve para desarrollo local.
+ *  ALMACENAMIENTO DE ARCHIVOS — Supabase Storage (adaptador intercambiable)
+ *  Las imágenes subidas desde el admin se guardan en un bucket PÚBLICO de
+ *  Supabase y se sirven por su URL pública (next/image las optimiza; ver el
+ *  `remotePattern` en next.config). La validación/normalización con sharp NO
+ *  depende de esto: solo se cumple la interfaz `saveFile`/`deleteFileByUrl`,
+ *  así que cambiar de proveedor (R2/S3) es reimplementar solo este archivo.
  * ─────────────────────────────────────────────────────────────────────────
  */
 
-const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads");
-const PUBLIC_PREFIX = "/uploads/";
+const BUCKET = process.env.SUPABASE_STORAGE_BUCKET ?? "uploads";
+const PUBLIC_MARKER = `/storage/v1/object/public/${BUCKET}/`;
 
 export interface StoredFile {
   /** URL pública para usar en <Image> y guardar en la BD. */
   url: string;
 }
 
-/** Convierte una clave (`products/x/y.webp`) a la ruta absoluta en disco. */
-function toDiskPath(key: string): string {
-  return path.join(UPLOAD_DIR, ...key.split("/"));
+/** Cliente de Supabase con la service role key (solo servidor, nunca al cliente). */
+function storageClient() {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) {
+    throw new Error(
+      "Falta configurar SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY en el entorno.",
+    );
+  }
+  return createClient(url, key, { auth: { persistSession: false } });
 }
 
 /** Guarda los bytes bajo la clave dada y devuelve su URL pública. */
 export async function saveFile(key: string, data: Buffer): Promise<StoredFile> {
-  const filePath = toDiskPath(key);
-  await mkdir(path.dirname(filePath), { recursive: true });
-  await writeFile(filePath, data);
-  return { url: `${PUBLIC_PREFIX}${key}` };
+  const supabase = storageClient();
+  const { error } = await supabase.storage.from(BUCKET).upload(key, data, {
+    contentType: "image/webp",
+    upsert: true,
+  });
+  if (error) {
+    throw new Error(`No se pudo subir la imagen: ${error.message}`);
+  }
+  const { data: pub } = supabase.storage.from(BUCKET).getPublicUrl(key);
+  return { url: pub.publicUrl };
 }
 
-/** Elimina el archivo correspondiente a una URL pública (si existe). */
+/** Elimina el archivo de una URL pública (si pertenece a nuestro bucket). */
 export async function deleteFileByUrl(url: string): Promise<void> {
-  if (!url.startsWith(PUBLIC_PREFIX)) return; // no es un archivo nuestro
-  const key = url.slice(PUBLIC_PREFIX.length);
-  try {
-    await unlink(toDiskPath(key));
-  } catch {
-    // Si el archivo ya no existe, no es un error.
-  }
+  const idx = url.indexOf(PUBLIC_MARKER);
+  if (idx === -1) return; // no es un archivo de nuestro bucket
+  const key = url.slice(idx + PUBLIC_MARKER.length);
+  const supabase = storageClient();
+  await supabase.storage.from(BUCKET).remove([key]);
 }

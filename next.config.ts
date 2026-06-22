@@ -1,5 +1,11 @@
 import type { NextConfig } from "next";
 
+// Host de Supabase Storage (para que next/image pueda optimizar las imágenes
+// remotas del bucket público). Se deriva de SUPABASE_URL si está definida.
+const supabaseHost = process.env.SUPABASE_URL
+  ? new URL(process.env.SUPABASE_URL).hostname
+  : undefined;
+
 const nextConfig: NextConfig = {
   // Fija la raíz del proyecto para Turbopack. Evita el aviso por múltiples
   // lockfiles cuando existe otro pnpm-lock.yaml en carpetas superiores.
@@ -11,11 +17,7 @@ const nextConfig: NextConfig = {
   // módulos externos en el servidor (evita errores de bundling de binarios).
   // NOTA: `sharp` NO se lista aquí; Next ya lo externaliza por defecto y
   // listarlo rompe el generador de imágenes OpenGraph.
-  serverExternalPackages: [
-    "@prisma/client",
-    "@prisma/adapter-better-sqlite3",
-    "better-sqlite3",
-  ],
+  serverExternalPackages: ["@prisma/client", "@prisma/adapter-pg", "pg"],
 
   experimental: {
     serverActions: {
@@ -32,10 +34,16 @@ const nextConfig: NextConfig = {
     // Calidades permitidas al re-optimizar (Next 16 exige declararlas). 75 es el
     // valor por defecto (miniaturas/productos); 90 lo usa la portada del inicio.
     qualities: [75, 90],
-    // Las imágenes se sirven locales desde /uploads (mismo origen), así que el
-    // optimizador actúa sin necesidad de remotePatterns.
-    // TODO: añadir aquí el dominio del object storage (R2/S3) cuando se defina
-    // el hosting (decisión #1).
+    // Imágenes servidas desde el bucket público de Supabase Storage.
+    remotePatterns: supabaseHost
+      ? [
+          {
+            protocol: "https",
+            hostname: supabaseHost,
+            pathname: "/storage/v1/object/public/**",
+          },
+        ]
+      : [],
   },
 
   // Cabeceras de seguridad base (CLAUDE.md §7.6). La Content-Security-Policy

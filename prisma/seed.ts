@@ -1,12 +1,12 @@
 import "dotenv/config";
 
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { argon2id, hash } from "argon2";
 
 import { PrismaClient } from "../src/generated/prisma/client";
 
 const db = new PrismaClient({
-  adapter: new PrismaBetterSqlite3({ url: process.env.DATABASE_URL }),
+  adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
 });
 
 /** Slug simple para SKUs (sin acentos ni espacios). */

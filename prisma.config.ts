@@ -8,9 +8,11 @@ export default defineConfig({
   migrations: {
     path: "prisma/migrations",
   },
-  // URL para la CLI de Prisma (migrate/studio). En runtime, el cliente usa un
-  // driver adapter (ver src/lib/db.ts), como exige Prisma 7.
+  // URL para la CLI de Prisma (migrate). Usa la conexión DIRECTA (DIRECT_URL),
+  // no el pooler de transacciones, porque las migraciones lo requieren. dotenv
+  // (arriba) carga el .env. En runtime el cliente usa un driver adapter con
+  // DATABASE_URL (ver src/lib/db.ts), como exige Prisma 7.
   datasource: {
-    url: process.env["DATABASE_URL"],
+    url: process.env["DIRECT_URL"],
   },
 });

@@ -1,11 +1,13 @@
 // Esquema de datos de NUE INTIME (CLAUDE.md §4). 24 tablas.
 //
-// NOTA SOBRE SQLITE (etapa actual, "por ahora"): SQLite no soporta `enum` ni
-// `Json` nativos de Prisma, así que los estados/tipos se modelan como `String`
-// (con valores válidos documentados y validados en la app con Zod) y los campos
-// JSON se guardan como texto. El dinero va en CÉNTIMOS enteros (`Int`), según la
-// decisión del proyecto. Al migrar a PostgreSQL, estos campos pueden volverse
-// `enum`/`Json`/`Decimal` sin cambiar la lógica de la aplicación.
+// BASE DE DATOS: PostgreSQL (Supabase). Por simplicidad se mantienen los
+// estados/tipos como `String` (validados con Zod en la app) y los campos JSON
+// como texto, igual que en la etapa SQLite; el dinero va en CÉNTIMOS enteros
+// (`Int`). Se pueden migrar a `enum`/`Json`/`Decimal` más adelante sin tocar la
+// lógica de la aplicación.
+//
+// Conexión: `DATABASE_URL` usa el pooler de transacciones (serverless);
+// `DIRECT_URL` la conexión directa para migraciones.
 
 generator client {
   provider = "prisma-client"
@@ -13,7 +15,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
 }
 
 // ─────────────────────────────── Usuarios y acceso ───────────────────────────
