@@ -68,13 +68,29 @@ export function LoadingSplash() {
     <div
       aria-hidden="true"
       className={cn(
-        "fixed inset-0 z-100 flex items-center justify-center bg-background transition-opacity ease-out",
+        "fixed inset-0 z-100 flex items-center justify-center bg-[#f6f1ec] text-neutral-900 transition-opacity ease-out",
         fading ? "pointer-events-none opacity-0" : "opacity-100",
       )}
       style={{ transitionDuration: `${FADE_MS}ms` }}
     >
-      <div className="text-5xl motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-95 motion-safe:duration-700 sm:text-6xl">
-        <Logo />
+      {/* Resplandor radial cálido (un toque rosado) que suaviza el marfil. */}
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(60% 50% at 50% 42%, rgba(201,167,161,0.20), transparent 70%)",
+        }}
+      />
+
+      <div className="relative flex flex-col items-center gap-7">
+        <div className="text-5xl motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-95 motion-safe:duration-700 sm:text-6xl">
+          <Logo />
+        </div>
+
+        {/* Línea de carga: barre suavemente (en reposo, una línea fina). */}
+        <div className="relative h-px w-24 overflow-hidden rounded-full bg-neutral-900/10 motion-safe:animate-in motion-safe:fade-in motion-safe:delay-300 motion-safe:duration-700">
+          <div className="absolute inset-y-0 left-0 w-1/3 rounded-full bg-[#c9a7a1] motion-safe:animate-[splash-sweep_1.15s_ease-in-out_infinite] motion-reduce:hidden" />
+        </div>
       </div>
     </div>
   );

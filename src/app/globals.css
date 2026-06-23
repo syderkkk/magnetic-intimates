@@ -210,3 +210,13 @@
     transform: translateX(0);
   }
 }
+
+/* Barrido de la línea de carga del splash de bienvenida. */
+@keyframes splash-sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(300%);
+  }
+}
