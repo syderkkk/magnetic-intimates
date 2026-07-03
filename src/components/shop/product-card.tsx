@@ -4,17 +4,11 @@ import Link from "next/link";
 import { discountPercent, formatPrice } from "@/lib/money";
 import { totalStock } from "@/lib/product-variants";
 import { cn } from "@/lib/utils";
-import type { Product, ProductBadge } from "@/types/product";
+import type { Product } from "@/types/product";
 import { AddToCartButton } from "./add-to-cart-button";
 import { FavoriteButton } from "./favorite-button";
 import { NoImage } from "./no-image";
-
-/** Etiquetas legibles para cada badge. */
-const BADGE_LABELS: Record<ProductBadge, string> = {
-  nuevo: "Nuevo",
-  bestseller: "Más vendido",
-  oferta: "Oferta",
-};
+import { ProductBadgeChip } from "./product-badge-chip";
 
 interface ProductCardProps {
   product: Product;
@@ -90,9 +84,10 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
 
         {/* Badge (campaña / estado). Esquina superior izquierda, siempre visible. */}
         {product.badge ? (
-          <span className="absolute top-2.5 left-2.5 rounded-full bg-foreground px-2.5 py-1 text-[10px] font-medium tracking-wider text-background uppercase">
-            {BADGE_LABELS[product.badge]}
-          </span>
+          <ProductBadgeChip
+            badge={product.badge}
+            className="absolute top-2.5 left-2.5"
+          />
         ) : null}
 
         {/* Favorito (sobre el overlay del link, por eso z-10). */}

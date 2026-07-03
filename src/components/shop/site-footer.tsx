@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { siteConfig } from "@/config/site";
 import { Logo } from "./logo";
+import { Monogram } from "./monogram";
 
 /** Glifo de Instagram (lucide v1 ya no incluye íconos de marca). */
 function InstagramIcon({ className }: { className?: string }) {
@@ -27,13 +28,20 @@ function InstagramIcon({ className }: { className?: string }) {
 // Términos) se mostrarán cuando existan esas páginas (fase legal). Por ahora se
 // omiten para no enlazar a 404.
 
-/** Pie de página del sitio. */
+/**
+ * Pie de página del sitio: negro de marca con texto sand — cierra la página
+ * con la dualidad claro/oscuro de MAGNÉTIC (docs/06-identidad-magnetic.md §5.9).
+ * El monograma grande a la derecha es una marca de agua decorativa, no un logo
+ * clicable (por eso `aria-hidden`).
+ */
 export function SiteFooter() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="border-t bg-background">
-      <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+    <footer className="relative overflow-hidden bg-foreground text-background">
+      <Monogram className="pointer-events-none absolute -top-10 -right-10 size-56 text-background/10 sm:size-72" />
+
+      <div className="relative mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
         <div className="grid grid-cols-2 gap-10 md:grid-cols-3">
           {/* Marca */}
           <div className="col-span-2 md:col-span-2">
@@ -44,7 +52,7 @@ export function SiteFooter() {
             >
               <Logo />
             </Link>
-            <p className="mt-4 max-w-xs text-sm text-muted-foreground">
+            <p className="mt-4 max-w-xs text-sm text-background/70">
               Lencería y prendas íntimas que combinan calidad, comodidad y
               elegancia.
             </p>
@@ -54,7 +62,7 @@ export function SiteFooter() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Instagram"
-                className="flex size-9 items-center justify-center rounded-full border text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                className="flex size-9 items-center justify-center rounded-full border border-background/20 text-background/70 transition-colors hover:bg-background/10 hover:text-background"
               >
                 <InstagramIcon className="size-4" />
               </Link>
@@ -63,7 +71,7 @@ export function SiteFooter() {
 
           {/* Navegación */}
           <nav aria-label="Navegación del pie">
-            <h2 className="text-xs font-medium tracking-wider text-muted-foreground uppercase">
+            <h2 className="text-xs font-medium tracking-wider text-background/50 uppercase">
               Explorar
             </h2>
             <ul className="mt-4 space-y-3 text-sm">
@@ -71,7 +79,7 @@ export function SiteFooter() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="text-foreground/80 transition-colors hover:text-foreground"
+                    className="text-background/80 transition-colors hover:text-background"
                   >
                     {link.label}
                   </Link>
@@ -79,10 +87,9 @@ export function SiteFooter() {
               ))}
             </ul>
           </nav>
-
         </div>
 
-        <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t pt-6 text-xs text-muted-foreground sm:flex-row">
+        <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-background/15 pt-6 text-xs text-background/60 sm:flex-row">
           <p>
             © {year} {siteConfig.name}. Todos los derechos reservados.
           </p>

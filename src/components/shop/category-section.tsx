@@ -48,7 +48,7 @@ export async function CategorySection() {
                 className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
               />
             ) : (
-              <div className="absolute inset-0 bg-linear-to-br from-neutral-700 to-neutral-950 transition-transform duration-500 ease-out group-hover:scale-105" />
+              <div className="absolute inset-0 bg-linear-to-br from-muted-foreground to-foreground transition-transform duration-500 ease-out group-hover:scale-105" />
             )}
             {/* Degradado inferior para legibilidad */}
             <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/10 to-transparent" />

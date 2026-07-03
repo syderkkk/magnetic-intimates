@@ -81,7 +81,7 @@ export default async function HomePage() {
         <div className="absolute inset-0 flex items-center">
           <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="max-w-xl text-white">
-              <span className="inline-flex rounded-full border border-white/30 px-3 py-1 text-[11px] font-medium tracking-[0.2em] uppercase backdrop-blur-sm">
+              <span className="inline-flex rounded-full bg-accent px-3 py-1 text-[11px] font-medium tracking-[0.2em] text-foreground uppercase">
                 Nueva colección
               </span>
               <h1 className="mt-5 font-display text-4xl leading-[1.05] font-semibold tracking-tight text-balance sm:text-5xl lg:text-6xl">
@@ -183,12 +183,14 @@ export default async function HomePage() {
       ) : null}
 
       {/* ── Propuestas de valor ── */}
-      <section className="border-t">
+      {/* Franja con baño nude sutil: separa esta sección de "servicio" del resto
+          (blanco/sand) sin competir con las fotos de producto (docs/06 §5.5). */}
+      <section className="border-t bg-accent/20">
         <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-3 lg:px-8">
           {VALUE_PROPS.map(({ icon: Icon, title, description }, i) => (
             <Reveal key={title} delayMs={i * 100}>
               <div className="flex items-start gap-4">
-                <span className="flex size-11 shrink-0 items-center justify-center rounded-full border">
+                <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-background">
                   <Icon className="size-5" aria-hidden="true" />
                 </span>
                 <div>

@@ -151,7 +151,7 @@ export function ProductDetail({ product }: { product: Product }) {
             </span>
           ) : null}
           {discount > 0 ? (
-            <span className="rounded-full bg-foreground/8 px-2 py-0.5 text-xs font-medium text-foreground">
+            <span className="rounded-full bg-accent/70 px-2 py-0.5 text-xs font-medium text-foreground">
               -{discount}% dto.
             </span>
           ) : null}

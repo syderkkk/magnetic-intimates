@@ -9,12 +9,7 @@ import { cn } from "@/lib/utils";
 import type { ProductBadge, ProductImage } from "@/types/product";
 import { FavoriteButton } from "./favorite-button";
 import { NoImage } from "./no-image";
-
-const BADGE_LABELS: Record<ProductBadge, string> = {
-  nuevo: "Nuevo",
-  bestseller: "Más vendido",
-  oferta: "Oferta",
-};
+import { ProductBadgeChip } from "./product-badge-chip";
 
 interface ProductGalleryProps {
   images: ProductImage[];
@@ -63,9 +58,7 @@ export function ProductGallery({
         <div className="relative aspect-4/5 w-full overflow-hidden rounded-2xl bg-muted">
           <NoImage className="absolute inset-0 size-full" />
           {badge ? (
-            <span className="absolute top-3 left-3 z-10 rounded-full bg-foreground px-2.5 py-1 text-[10px] font-medium tracking-wider text-background uppercase">
-              {BADGE_LABELS[badge]}
-            </span>
+            <ProductBadgeChip badge={badge} className="absolute top-3 left-3 z-10" />
           ) : null}
           <FavoriteButton
             productName={productName}
@@ -103,9 +96,7 @@ export function ProductGallery({
         </button>
 
         {badge ? (
-          <span className="absolute top-3 left-3 z-10 rounded-full bg-foreground px-2.5 py-1 text-[10px] font-medium tracking-wider text-background uppercase">
-            {BADGE_LABELS[badge]}
-          </span>
+          <ProductBadgeChip badge={badge} className="absolute top-3 left-3 z-10" />
         ) : null}
 
         <FavoriteButton

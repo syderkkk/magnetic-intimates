@@ -2,7 +2,10 @@
   "permissions": {
     "allow": [
       "Bash(pnpm start *)",
-      "Bash(node -e ' *)"
+      "Bash(node -e ' *)",
+      "Bash(curl -s -o /dev/null http://localhost:3000/)",
+      "Bash(cp __TRACKED_VAR__/splash-timing.mjs ./__splash_timing.mjs)",
+      "Bash(rm ./__splash_timing.mjs)"
     ]
   }
 }
