@@ -8,7 +8,7 @@ import "./globals.css";
 
 // Título descriptivo solo para compartir enlaces (Open Graph / X). En la
 // pestaña del navegador se usa el nombre de la marca (ver `title.default`).
-const SHARE_TITLE = `${siteConfig.name} — Lencería y ropa íntima`;
+const SHARE_TITLE = `${siteConfig.name} — ${siteConfig.tagline}`;
 
 export const metadata: Metadata = {
   // Base para resolver URLs absolutas (canonical, Open Graph, etc.).
@@ -26,7 +26,8 @@ export const metadata: Metadata = {
     "bodies",
     "conjuntos",
     "Perú",
-    "NUE INTIME",
+    "Magnétic",
+    "Magnetic Intimates",
   ],
   authors: [{ name: siteConfig.name }],
   creator: siteConfig.name,
@@ -63,7 +64,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#ffffff",
+  themeColor: "#f7f4ef",
 };
 
 export default function RootLayout({

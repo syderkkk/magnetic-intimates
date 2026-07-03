@@ -42,7 +42,7 @@ export function MobileNav() {
             <Link
               href="/"
               onClick={() => setOpen(false)}
-              aria-label="NUE INTIME — Inicio"
+              aria-label="MAGNÉTIC — Inicio"
               className="inline-block transition-opacity hover:opacity-70"
             >
               <Logo />

@@ -75,8 +75,8 @@ const PRODUCTS: SeedProduct[] = [
       "92% poliéster satinado, 8% elastano. Lavar a mano con agua fría, no usar lejía, secar a la sombra.",
     isFeatured: true,
     images: [
-      { seed: "nue-essential-1", alt: "Conjunto Essential en negro, vista frontal" },
-      { seed: "nue-essential-2", alt: "Conjunto Essential en negro, vista de detalle" },
+      { seed: "mag-essential-1", alt: "Conjunto Essential en negro, vista frontal" },
+      { seed: "mag-essential-2", alt: "Conjunto Essential en negro, vista de detalle" },
     ],
     stock: {
       "XS|#0A0A0A": 12,
@@ -102,8 +102,8 @@ const PRODUCTS: SeedProduct[] = [
     isFeatured: true,
     defaultStock: 18,
     images: [
-      { seed: "nue-body-1", alt: "Body Seamless en marfil, vista frontal" },
-      { seed: "nue-body-2", alt: "Body Seamless en marfil, vista lateral" },
+      { seed: "mag-body-1", alt: "Body Seamless en marfil, vista frontal" },
+      { seed: "mag-body-2", alt: "Body Seamless en marfil, vista lateral" },
     ],
   },
   {
@@ -119,8 +119,8 @@ const PRODUCTS: SeedProduct[] = [
     isFeatured: true,
     defaultStock: 12,
     images: [
-      { seed: "nue-pijama-1", alt: "Pijama de satín en tono perla, vista frontal" },
-      { seed: "nue-pijama-2", alt: "Pijama de satín en tono perla, vista de detalle" },
+      { seed: "mag-pijama-1", alt: "Pijama de satín en tono perla, vista frontal" },
+      { seed: "mag-pijama-2", alt: "Pijama de satín en tono perla, vista de detalle" },
     ],
   },
   {
@@ -135,8 +135,8 @@ const PRODUCTS: SeedProduct[] = [
     isFeatured: true,
     defaultStock: 20,
     images: [
-      { seed: "nue-bralette-1", alt: "Bralette de encaje, vista frontal" },
-      { seed: "nue-bralette-2", alt: "Bralette de encaje, vista de detalle" },
+      { seed: "mag-bralette-1", alt: "Bralette de encaje, vista frontal" },
+      { seed: "mag-bralette-2", alt: "Bralette de encaje, vista de detalle" },
     ],
   },
   {
@@ -153,8 +153,8 @@ const PRODUCTS: SeedProduct[] = [
     isFeatured: true,
     defaultStock: 9,
     images: [
-      { seed: "nue-slip-1", alt: "Slip dress en tono medianoche, vista frontal" },
-      { seed: "nue-slip-2", alt: "Slip dress en tono medianoche, vista de espalda" },
+      { seed: "mag-slip-1", alt: "Slip dress en tono medianoche, vista frontal" },
+      { seed: "mag-slip-2", alt: "Slip dress en tono medianoche, vista de espalda" },
     ],
   },
   {
@@ -170,8 +170,8 @@ const PRODUCTS: SeedProduct[] = [
     isFeatured: true,
     defaultStock: 30,
     images: [
-      { seed: "nue-tanga-1", alt: "Tanga de algodón pima, vista frontal" },
-      { seed: "nue-tanga-2", alt: "Tanga de algodón pima, vista de detalle" },
+      { seed: "mag-tanga-1", alt: "Tanga de algodón pima, vista frontal" },
+      { seed: "mag-tanga-2", alt: "Tanga de algodón pima, vista de detalle" },
     ],
   },
   {
@@ -186,8 +186,8 @@ const PRODUCTS: SeedProduct[] = [
     isFeatured: true,
     defaultStock: 14,
     images: [
-      { seed: "nue-kimono-1", alt: "Kimono corto en tono arena, vista frontal" },
-      { seed: "nue-kimono-2", alt: "Kimono corto en tono arena, vista de detalle" },
+      { seed: "mag-kimono-1", alt: "Kimono corto en tono arena, vista frontal" },
+      { seed: "mag-kimono-2", alt: "Kimono corto en tono arena, vista de detalle" },
     ],
   },
   {
@@ -203,15 +203,15 @@ const PRODUCTS: SeedProduct[] = [
     isFeatured: true,
     defaultStock: 40,
     images: [
-      { seed: "nue-medias-1", alt: "Set de medias rib, vista frontal" },
-      { seed: "nue-medias-2", alt: "Set de medias rib, vista de detalle" },
+      { seed: "mag-medias-1", alt: "Set de medias rib, vista frontal" },
+      { seed: "mag-medias-2", alt: "Set de medias rib, vista de detalle" },
     ],
   },
 ];
 
 const SITE_SETTINGS = [
-  { key: "site_name", value: "NUE INTIME", type: "string" },
-  { key: "primary_color", value: "#0A0A0A", type: "color" },
+  { key: "site_name", value: "MAGNÉTIC", type: "string" },
+  { key: "primary_color", value: "#0E0E0D", type: "color" },
   { key: "whatsapp", value: "", type: "string" },
   { key: "instagram", value: "https://instagram.com", type: "string" },
 ];
@@ -240,7 +240,7 @@ async function main() {
   const passwordHash = await hash("Admin1234!", { type: argon2id });
   await db.user.create({
     data: {
-      email: "admin@nue.pe",
+      email: "admin@magnetic.pe",
       name: "Administrador",
       passwordHash,
       roleId: adminRole.id,

@@ -1,20 +1,36 @@
-import { Geist, Geist_Mono, Jost } from "next/font/google";
+import { Geist_Mono } from "next/font/google";
+import localFont from "next/font/local";
 
 /**
  * Definiciones de tipografía centralizadas, expuestas como variables CSS para
  * que todo el sistema tipográfico sea intercambiable desde un solo lugar
  * (ver los tokens `--font-*` en globals.css).
  *
- * - `jost`      → tipografía de marca / títulos (sans geométrica, acorde al logo NUE)
- * - `geist`     → texto de cuerpo e interfaz
+ * - `mazzard`   → tipografía de marca / títulos y logo (Mazzard M Regular)
+ * - `rubik`     → texto de cuerpo e interfaz (tagline y UI de la marca)
  * - `geistMono` → contextos numéricos / monoespaciados
  *
- * Para cambiar una tipografía en todo el sitio: reemplaza el import aquí y el
- * token `--font-*` correspondiente en globals.css. No hace falta tocar nada más.
+ * Para cambiar una tipografía en todo el sitio: reemplaza la definición aquí y
+ * el token `--font-*` correspondiente en globals.css. No hace falta tocar nada más.
  */
-export const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+export const mazzard = localFont({
+  src: [
+    { path: "../fonts/mazzard-m-regular.woff2", weight: "400", style: "normal" },
+  ],
+  variable: "--font-mazzard",
+  display: "swap",
+});
+
+export const rubik = localFont({
+  src: [
+    { path: "../fonts/rubik-variable.woff2", weight: "300 900", style: "normal" },
+    {
+      path: "../fonts/rubik-italic-variable.woff2",
+      weight: "300 900",
+      style: "italic",
+    },
+  ],
+  variable: "--font-rubik",
   display: "swap",
 });
 
@@ -24,11 +40,5 @@ export const geistMono = Geist_Mono({
   display: "swap",
 });
 
-export const jost = Jost({
-  variable: "--font-jost",
-  subsets: ["latin"],
-  display: "swap",
-});
-
 /** Clases de variables de fuente aplicadas en <html>. */
-export const fontVariables = `${geistSans.variable} ${geistMono.variable} ${jost.variable}`;
+export const fontVariables = `${mazzard.variable} ${rubik.variable} ${geistMono.variable}`;

@@ -9,8 +9,10 @@ import type { Cents } from "@/lib/money";
  * en el servidor (CLAUDE.md §7.1): este estado es únicamente para la interfaz.
  */
 export interface CartItem {
-  /** Clave única de la línea (producto + variante a futuro). */
+  /** Clave única de la línea (= `variantId`). */
   key: string;
+  /** Id real de la variante en `product_variants` — lo que valida el servidor al comprar. */
+  variantId: string;
   productId: string;
   slug: string;
   name: string;
@@ -69,10 +71,10 @@ export const useCartStore = create<CartState>()(
       clear: () => set({ items: [] }),
     }),
     {
-      name: "nue-cart",
-      // Subir la versión descarta carritos viejos (p. ej. con imágenes de
-      // hosts ya no permitidos en next.config) y evita que rompan el render.
-      version: 1,
+      name: "magnetic-cart",
+      // Subir la versión descarta carritos viejos (p. ej. líneas sin
+      // `variantId` de antes del checkout real) y evita que rompan el render.
+      version: 2,
       migrate: (persisted) => ({ ...(persisted as CartState), items: [] }),
     },
   ),

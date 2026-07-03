@@ -51,7 +51,7 @@ export function LoginForm() {
           inputMode="email"
           autoComplete="username"
           required
-          placeholder="admin@nue.pe"
+          placeholder="admin@tudominio.com"
           className="h-11"
         />
       </div>

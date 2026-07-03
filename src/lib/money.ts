@@ -4,9 +4,8 @@
  *  Trabajamos los montos en CÉNTIMOS (enteros) para evitar errores de punto
  *  flotante (p. ej. 0.1 + 0.2 !== 0.3). Solo se convierte a decimal al mostrar.
  *
- *  En la base de datos los montos se guardarán con `Decimal` de Prisma
- *  (CLAUDE.md §11.6); estos céntimos enteros mapean de forma exacta a/desde
- *  ese `Decimal`, sin pérdida de precisión.
+ *  En la base de datos los montos se guardan como `Int` (columnas `*Cents`);
+ *  nunca `Decimal` ni `Float` (CLAUDE.md §11.6, regla firme del proyecto).
  * ─────────────────────────────────────────────────────────────────────────
  */
 

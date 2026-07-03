@@ -93,7 +93,7 @@ export function ProductDetail({ product }: { product: Product }) {
       sizeGroupRef.current?.scrollIntoView({ block: "center", behavior: "smooth" });
       return;
     }
-    if (hardDisabled) return;
+    if (hardDisabled || !selectedVariant) return;
 
     const img = product.images[0];
 
@@ -104,9 +104,8 @@ export function ProductDetail({ product }: { product: Product }) {
 
     addItem(
       {
-        key:
-          selectedVariant?.sku ??
-          `${product.id}-${selectedColor ?? ""}-${selectedSize ?? ""}`,
+        key: selectedVariant.id,
+        variantId: selectedVariant.id,
         productId: product.id,
         slug: product.slug,
         name: product.name,

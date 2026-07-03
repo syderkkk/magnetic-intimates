@@ -23,7 +23,7 @@ interface ProductCardProps {
 }
 
 /**
- * Tarjeta de producto — estética editorial monocroma de NUE INTIME.
+ * Tarjeta de producto — estética editorial monocroma de MAGNÉTIC.
  *
  * Imagen a sangre con esquinas rectas (sin radio) para un look de galería. Al
  * pasar el cursor, la foto principal se sustituye por la segunda (CSS puro; en

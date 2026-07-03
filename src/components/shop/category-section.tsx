@@ -42,7 +42,7 @@ export async function CategorySection() {
             {category.imageUrl ? (
               <Image
                 src={category.imageUrl}
-                alt={`Categoría ${category.name} de NUE INTIME`}
+                alt={`Categoría ${category.name} de MAGNÉTIC`}
                 fill
                 sizes="(max-width: 640px) 50vw, 25vw"
                 className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"

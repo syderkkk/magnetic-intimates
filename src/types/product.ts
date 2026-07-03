@@ -17,6 +17,8 @@ export interface ProductImage {
  * si un producto se vende por una sola dimensión (p. ej. talla única).
  */
 export interface ProductVariant {
+  /** Id real de `product_variants` (Prisma) — lo que viaja al carrito y al pedido. */
+  id: string;
   /** Código único de la variante. */
   sku: string;
   /** Talla (p. ej. "M"); ausente si el producto no maneja tallas. */

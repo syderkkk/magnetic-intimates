@@ -1,6 +1,6 @@
 /**
  * ─────────────────────────────────────────────────────────────────────────
- *  CONFIGURACIÓN DEL SITIO — NUE INTIME
+ *  CONFIGURACIÓN DEL SITIO — MAGNÉTIC
  *  Fuente única de verdad para marca, navegación, redes y la barra de anuncios.
  *
  *  Está pensado como "costura" para el futuro panel de administración: hoy son
@@ -60,13 +60,16 @@ export interface NavLink {
 }
 
 export const siteConfig = {
-  name: "NUE INTIME",
+  name: "MAGNÉTIC",
   /** Variante corta para contextos compactos. */
-  shortName: "NUE",
+  shortName: "MAGNÉTIC",
+  /** Tagline de marca ("Intimacy with attitude"). */
+  tagline: "Intimacy with attitude",
   /** Descripción usada en SEO y al compartir enlaces. */
   description:
-    "NUE INTIME — lencería y prendas íntimas. Calidad, comodidad y elegancia. Envíos a todo el Perú.",
+    "MAGNÉTIC — Intimacy with attitude. Lencería y prendas íntimas con actitud. Calidad, comodidad y elegancia. Envíos a todo el Perú.",
   /** URL pública del sitio (se usa como base para SEO y enlaces absolutos). */
+  // TODO: confirmar con cliente — dominio magneticintimates.com pendiente de compra (CLAUDE.md §1.1).
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
   /** Locale para metadatos Open Graph. */
   locale: "es_PE",

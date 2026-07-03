@@ -1,14 +1,15 @@
 import "server-only";
 
 import { db } from "@/lib/db";
+import type { Prisma } from "@/generated/prisma/client";
 
 interface AuditEntry {
   userId?: string | null;
   action: string;
   entityType: string;
   entityId?: string | null;
-  /** Detalle (antes/después u otros datos); se serializa a JSON. */
-  changes?: unknown;
+  /** Detalle (antes/después u otros datos); se guarda tal cual en la columna Json. */
+  changes?: Prisma.InputJsonValue | null;
   ipAddress?: string | null;
 }
 
@@ -37,7 +38,7 @@ export async function recordAudit(entry: AuditEntry): Promise<void> {
     action: entry.action,
     entityType: entry.entityType,
     entityId: entry.entityId ?? null,
-    changes: entry.changes != null ? JSON.stringify(entry.changes) : null,
+    changes: entry.changes ?? undefined,
     ipAddress: entry.ipAddress ?? null,
   };
 

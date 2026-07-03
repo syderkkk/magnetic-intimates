@@ -11,7 +11,7 @@ const MIN_VISIBLE_MS = 700;
 /** Duración del desvanecido (ms). */
 const FADE_MS = 500;
 /** Clave de sesión para mostrarlo solo una vez por sesión. */
-const SESSION_KEY = "nue-splash-shown";
+const SESSION_KEY = "magnetic-splash-shown";
 
 /**
  * Pantalla de carga de marca.

@@ -18,7 +18,7 @@ import { getAllProducts } from "@/lib/data/products";
 export const metadata: Metadata = {
   title: "Tienda",
   description:
-    "Explora la colección de NUE INTIME: conjuntos, bodies, pijamas y lencería con la mejor calidad y comodidad.",
+    "Explora la colección de MAGNÉTIC: conjuntos, bodies, pijamas y lencería con la mejor calidad y comodidad.",
   alternates: { canonical: "/tienda" },
 };
 

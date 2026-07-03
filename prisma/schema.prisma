@@ -1,4 +1,4 @@
-// Esquema de datos de NUE INTIME (CLAUDE.md §4). 24 tablas.
+// Esquema de datos de MAGNÉTIC (CLAUDE.md §4). 24 tablas.
 //
 // BASE DE DATOS: PostgreSQL (Supabase). Por simplicidad se mantienen los
 // estados/tipos como `String` (validados con Zod en la app) y los campos JSON
@@ -201,10 +201,30 @@ model CartItem {
 
 // ───────────────────────────────────── Ventas ────────────────────────────────
 
+/** Máquina de estados del pedido (CLAUDE.md §11.2, `lib/order-status.ts`). */
+enum OrderStatus {
+  pendiente
+  pagado
+  enviado
+  entregado
+  cancelado
+  reembolsado
+}
+
+/** Estado de cada intento de pago registrado en `payments`. */
+enum PaymentStatus {
+  pendiente
+  aprobado
+  rechazado
+}
+
 model Order {
   id                String           @id @default(cuid())
-  number            Int              @unique // correlativo (lo asigna la app)
-  status            String           @default("pendiente") // máquina de estados §11.2
+  number            Int              @unique // correlativo (nextval('order_number_seq'))
+  status            OrderStatus      @default(pendiente) // máquina de estados §11.2
+  // Clave de idempotencia generada por el cliente al montar el checkout: evita
+  // pedidos duplicados por doble clic o reintento de red (docs/08 paso 3.3).
+  idempotencyKey    String           @unique @map("idempotency_key")
   userId            String?          @map("user_id")
   user              User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
   // Datos del comprador (snapshot)
@@ -250,16 +270,18 @@ model OrderItem {
 }
 
 model Payment {
-  id              String   @id @default(cuid())
-  orderId         String   @map("order_id")
-  order           Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  gateway         String   @default("izipay")
-  transactionId   String?  @map("transaction_id")
-  status          String // pendiente | aprobado | rechazado
-  amountCents     Int      @map("amount_cents")
-  gatewayResponse String?  @map("gateway_response") // JSON como texto (SQLite)
-  createdAt       DateTime @default(now()) @map("created_at")
+  id              String        @id @default(cuid())
+  orderId         String        @map("order_id")
+  order           Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  gateway         String        @default("izipay")
+  transactionId   String?       @map("transaction_id")
+  status          PaymentStatus
+  amountCents     Int           @map("amount_cents")
+  gatewayResponse Json?         @map("gateway_response") // respuesta completa de Izipay
+  createdAt       DateTime      @default(now()) @map("created_at")
 
+  // Idempotencia del webhook: el mismo transactionId no se procesa dos veces.
+  @@unique([orderId, transactionId])
   @@index([orderId])
   @@map("payments")
 }
@@ -395,7 +417,7 @@ model AuditLog {
   action     String // created | updated | deleted | status_changed
   entityType String   @map("entity_type")
   entityId   String?  @map("entity_id")
-  changes    String? // JSON como texto (antes/después)
+  changes    Json? // antes/después
   ipAddress  String?  @map("ip_address")
   createdAt  DateTime @default(now()) @map("created_at")
 

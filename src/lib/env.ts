@@ -10,9 +10,13 @@ import { z } from "zod";
 const envSchema = z.object({
   DATABASE_URL: z.string().min(1, "Falta DATABASE_URL en el entorno"),
   AUTH_SECRET: z.string().min(1, "Falta AUTH_SECRET en el entorno"),
+  // Protege /api/cron/cleanup (docs/08 paso 7): sin esta clave, el endpoint
+  // rechaza toda petición en vez de arrancar sin protección.
+  CRON_SECRET: z.string().min(1, "Falta CRON_SECRET en el entorno"),
 });
 
 export const env = envSchema.parse({
   DATABASE_URL: process.env.DATABASE_URL,
   AUTH_SECRET: process.env.AUTH_SECRET,
+  CRON_SECRET: process.env.CRON_SECRET,
 });

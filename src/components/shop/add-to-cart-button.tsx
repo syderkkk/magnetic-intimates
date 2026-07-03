@@ -4,6 +4,7 @@ import { Check, Plus } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { getVariants } from "@/lib/product-variants";
 import { cn } from "@/lib/utils";
 import { useCartStore } from "@/stores/cart-store";
 import type { Product } from "@/types/product";
@@ -14,7 +15,8 @@ interface AddToCartButtonProps {
 }
 
 /**
- * Botón para agregar un producto al carrito.
+ * Botón de "agregar rápido" (sin elegir variante) — solo se usa cuando el
+ * producto no tiene tallas ni colores, así que existe una única variante.
  * Muestra confirmación breve ("Agregado") tras la acción.
  * NOTA: el precio aquí es referencial; el cobro se recalcula en el servidor.
  */
@@ -22,6 +24,7 @@ export function AddToCartButton({ product, className }: AddToCartButtonProps) {
   const addItem = useCartStore((state) => state.addItem);
   const [added, setAdded] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const variant = getVariants(product)[0];
 
   useEffect(() => {
     // Limpia el temporizador si el componente se desmonta.
@@ -31,10 +34,12 @@ export function AddToCartButton({ product, className }: AddToCartButtonProps) {
   }, []);
 
   function handleClick() {
+    if (!variant) return;
     const primary = product.images[0];
 
     addItem({
-      key: product.id,
+      key: variant.id,
+      variantId: variant.id,
       productId: product.id,
       slug: product.slug,
       name: product.name,
@@ -52,6 +57,7 @@ export function AddToCartButton({ product, className }: AddToCartButtonProps) {
     <Button
       type="button"
       onClick={handleClick}
+      disabled={!variant}
       aria-label={`Agregar ${product.name} al carrito`}
       className={cn("h-10 w-full rounded-full text-xs font-medium", className)}
     >

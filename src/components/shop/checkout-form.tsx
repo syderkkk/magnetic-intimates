@@ -2,23 +2,24 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
+  AlertCircle,
   ArrowLeft,
-  Check,
   CreditCard,
   LoaderCircle,
   Lock,
   Minus,
   Plus,
-  ShieldCheck,
   ShoppingBag,
   Trash2,
   Truck,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
+import { createOrder } from "@/actions/orders";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -37,24 +38,26 @@ const FORM_ID = "checkout-form";
 
 /**
  * Checkout (compra como invitado): formulario de datos del comprador + resumen
- * del pedido en vivo, leído del carrito (cliente). Valida con Zod en el cliente
- * para una buena UX; el cobro real y el descuento de stock ocurrirán en el
- * servidor en una fase posterior.
- *
- * TODO: fase v0.4 — al enviar, una Server Action debe recalcular precios y stock
- * en el servidor dentro de `prisma.$transaction`, crear el pedido `pendiente` y
- * abrir el pago con Izipay (CLAUDE.md §11.3). Por ahora solo se validan y
- * confirman los datos; no se genera ningún cobro.
+ * del pedido en vivo, leído del carrito (cliente). El precio/stock siempre se
+ * recalcula en el servidor dentro de `createOrder` (CLAUDE.md §7.1); lo que se
+ * envía aquí es solo `{ variantId, quantity }[]` + los datos del comprador.
  */
 export function CheckoutForm() {
+  const router = useRouter();
   const mounted = useHasMounted();
   const items = useCartStore((state) => state.items);
   const updateQuantity = useCartStore((state) => state.updateQuantity);
   const removeItem = useCartStore((state) => state.removeItem);
+  const clear = useCartStore((state) => state.clear);
   const count = useCartCount();
   const subtotal = useCartSubtotal();
   const summary = computeOrderSummary(subtotal);
-  const [confirmation, setConfirmation] = useState<CheckoutValues | null>(null);
+  const [serverError, setServerError] = useState<string | null>(null);
+
+  // Generada UNA vez al montar el checkout (no por clic): un doble envío del
+  // formulario reutiliza la misma clave y `createOrder` devuelve el mismo
+  // pedido en vez de duplicarlo (docs/08 paso 3.3).
+  const [idempotencyKey] = useState(() => crypto.randomUUID());
 
   const {
     register,
@@ -65,20 +68,34 @@ export function CheckoutForm() {
     mode: "onTouched",
   });
 
-  async function onSubmit(values: CheckoutValues) {
-    // Simula el trabajo de servidor para que el spinner se perciba (UX).
-    await new Promise((resolve) => setTimeout(resolve, 600));
-    setConfirmation(values);
+  async function onSubmit(customer: CheckoutValues) {
+    setServerError(null);
+
+    const result = await createOrder({
+      idempotencyKey,
+      customer,
+      items: items.map((line) => ({
+        variantId: line.variantId,
+        quantity: line.quantity,
+      })),
+    });
+
+    if (!result.success) {
+      setServerError(result.error);
+      return;
+    }
+
+    // El carrito solo se vacía cuando el pedido quedó creado en el servidor.
+    clear();
+    router.push(
+      `/pedido/${result.data.orderNumber}?token=${result.data.accessToken}`,
+    );
   }
 
   // Evita el parpadeo de "carrito vacío" mientras se hidrata el estado (el
   // carrito vive en localStorage y no existe en el render del servidor).
   if (!mounted) {
     return <CheckoutSkeleton />;
-  }
-
-  if (confirmation) {
-    return <CheckoutConfirmation firstName={confirmation.firstName} />;
   }
 
   if (items.length === 0) {
@@ -367,6 +384,16 @@ export function CheckoutForm() {
                 Impuestos y envío se confirman al coordinar el pago.
               </p>
 
+              {serverError ? (
+                <p
+                  role="alert"
+                  className="mt-4 flex items-start gap-2 rounded-lg bg-destructive/10 px-3 py-2.5 text-sm text-destructive"
+                >
+                  <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+                  {serverError}
+                </p>
+              ) : null}
+
               <Button
                 type="submit"
                 form={FORM_ID}
@@ -426,33 +453,6 @@ function Field({
         </p>
       ) : null}
     </div>
-  );
-}
-
-/** Confirmación tras validar los datos (sin cobro real todavía). */
-function CheckoutConfirmation({ firstName }: { firstName: string }) {
-  return (
-    <section className="mx-auto flex max-w-md flex-col items-center px-4 py-20 text-center sm:py-28">
-      <span className="flex size-16 items-center justify-center rounded-full bg-foreground text-background">
-        <Check className="size-7" strokeWidth={2.5} aria-hidden="true" />
-      </span>
-      <h1 className="mt-6 font-display text-2xl font-semibold tracking-tight sm:text-3xl">
-        ¡Gracias, {firstName}!
-      </h1>
-      <p className="mt-3 text-sm text-muted-foreground">
-        Recibimos tus datos correctamente. En breve te contactaremos para
-        coordinar el pago y la entrega de tu pedido.
-      </p>
-      {/* TODO: fase v0.4 — reemplazar por el flujo de pago real con Izipay y la
-          confirmación del pedido pagado (CLAUDE.md §11.3). */}
-      <p className="mt-2 inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-        <ShieldCheck className="size-3.5" aria-hidden="true" />
-        Aún no se ha realizado ningún cobro.
-      </p>
-      <Button asChild className="mt-8 h-11 rounded-full px-6">
-        <Link href="/tienda">Volver a la tienda</Link>
-      </Button>
-    </section>
   );
 }
 

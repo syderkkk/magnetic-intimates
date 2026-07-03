@@ -38,8 +38,12 @@ export function getVariants(product: Product): ProductVariant[] {
   const result: ProductVariant[] = [];
   for (const size of sizes) {
     for (const color of colors) {
+      const sku = `${product.id}-${size ?? "u"}-${color ?? "u"}`;
       result.push({
-        sku: `${product.id}-${size ?? "u"}-${color ?? "u"}`,
+        // Sin fila real en `product_variants`: no es un id válido para comprar.
+        // El servidor lo rechazará en `createOrder` ("producto ya no disponible").
+        id: sku,
+        sku,
         size,
         color,
         stock: DEFAULT_VARIANT_STOCK,

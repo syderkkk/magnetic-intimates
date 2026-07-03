@@ -39,6 +39,7 @@ function uniqueByPosition(
 /** Convierte un producto de Prisma al tipo de presentación `Product`. */
 function toProduct(p: ProductWithRelations): Product {
   const variants: ProductVariant[] = p.variants.map((v) => ({
+    id: v.id,
     sku: v.sku,
     size: v.size?.name,
     color: v.color?.hex,

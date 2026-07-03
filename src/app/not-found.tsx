@@ -8,7 +8,7 @@ export default function NotFound() {
     <div className="flex min-h-svh flex-col items-center justify-center gap-8 px-4 text-center">
       <Link
         href="/"
-        aria-label="NUE INTIME — Inicio"
+        aria-label="MAGNÉTIC — Inicio"
         className="text-3xl transition-opacity hover:opacity-70"
       >
         <Logo />

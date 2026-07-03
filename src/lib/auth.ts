@@ -6,7 +6,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 
 /**
- * Configuración de Auth.js (v5) para NUE INTIME.
+ * Configuración de Auth.js (v5) para MAGNÉTIC.
  * Login por credenciales (email + contraseña argon2id), sesión por JWT en cookie
  * HTTP-only. La autorización por rol se valida en el servidor (layout de /admin
  * y Server Actions), nunca confiando en el cliente (CLAUDE.md §7.6).

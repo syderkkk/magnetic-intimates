@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: product.name,
     description:
       product.description ??
-      `Compra ${product.name} en NUE INTIME. Calidad y comodidad, con envíos a todo el Perú.`,
+      `Compra ${product.name} en MAGNÉTIC. Calidad y comodidad, con envíos a todo el Perú.`,
     alternates: { canonical: `/producto/${slug}` },
     openGraph: {
       images: product.images[0]

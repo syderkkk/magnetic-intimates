@@ -15,7 +15,7 @@
 
 /*
  * ─────────────────────────────────────────────────────────────────────────
- *  TOKENS DE DISEÑO — NUE INTIME
+ *  TOKENS DE DISEÑO — MAGNÉTIC
  *  Toda la identidad visual (colores, tipografía, radios) vive aquí como
  *  variables CSS. Para reajustar la marca, edita estos valores: el resto del
  *  sitio los consume y se actualiza solo. Pensado para que, más adelante, un
@@ -25,36 +25,37 @@
 :root {
   --radius: 0.625rem;
 
-  /* Superficies y texto (paleta monocroma de la marca: tinta sobre papel). */
-  --background: oklch(1 0 0); /* papel / blanco */
-  --foreground: oklch(0.145 0 0); /* tinta / casi negro */
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
+  /* Superficies y texto (paleta MAGNÉTIC: sand/blanco con tinta negra). */
+  --background: #f7f4ef; /* arena / sand — fondo principal */
+  --foreground: #0e0e0d; /* negro de marca */
+  --card: #ffffff; /* superficies elevadas sobre sand */
+  --card-foreground: #0e0e0d;
+  --popover: #ffffff;
+  --popover-foreground: #0e0e0d;
 
-  /* Color primario = tinta de marca (negro). */
-  --primary: oklch(0.145 0 0);
-  --primary-foreground: oklch(0.985 0 0);
+  /* Color primario = negro de marca. */
+  --primary: #0e0e0d;
+  --primary-foreground: #f7f4ef;
 
-  /* Secundario / silenciado / acento neutro. */
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  /* Secundario / silenciado / acento (sand oscurecido, taupe, nude). */
+  --secondary: #ece7de;
+  --secondary-foreground: #0e0e0d;
+  --muted: #ece7de;
+  /* Taupe oscurecido: NUNCA #937c69 como color de texto (no cumple 4.5:1 sobre sand). */
+  --muted-foreground: #6b5847;
+  --accent: #d1bead; /* nude — hovers, selección */
+  --accent-foreground: #0e0e0d;
 
   --destructive: oklch(0.577 0.245 27.325);
 
   /* Bordes, inputs y anillo de foco. */
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --border: #e2dbd0;
+  --input: #e2dbd0;
+  --ring: #937c69; /* taupe — decorativo, no lleva texto encima */
 
   /* Tokens de marca explícitos (úsalos cuando quieras forzar tinta/papel). */
-  --brand-ink: oklch(0.145 0 0);
-  --brand-paper: oklch(1 0 0);
+  --brand-ink: #0e0e0d;
+  --brand-paper: #f7f4ef;
 
   /*
    * Barra de anuncios. Negra con texto blanco por defecto (según la marca).
@@ -121,8 +122,8 @@
   --color-announcement-foreground: var(--announcement-foreground);
 
   /* Tipografía: tokens consumibles como `font-sans`, `font-display`, `font-mono`. */
-  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
-  --font-display: var(--font-jost), var(--font-geist-sans), sans-serif;
+  --font-sans: var(--font-rubik), system-ui, sans-serif;
+  --font-display: var(--font-mazzard), var(--font-rubik), sans-serif;
   --font-mono: var(--font-geist-mono), monospace;
 
   /* Radios derivados del radio base. */
