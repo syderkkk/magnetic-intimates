@@ -6,9 +6,19 @@
 
 ## 1. Resumen del Proyecto
 
-Tienda online (e-commerce) para una marca. Es un negocio **pequeño en crecimiento**.
+Tienda online (e-commerce) de **ropa íntima / lencería** para la marca **MAGNÉTIC**
+(tagline "Intimacy with attitude"; antes se llamaba NUE INTIME — no debe quedar
+ningún resto de "NUE" en código ni textos). Es un negocio **pequeño en crecimiento**.
+Dominio previsto: magneticintimates.com (pendiente de compra; no cambiar
+`NEXT_PUBLIC_SITE_URL` hasta confirmarse).
 
 **Objetivo de esta primera etapa:** entregar una tienda funcional, segura, rápida y administrable, sin sobre-ingeniería. Se priorizan funcionalidad, fiabilidad, seguridad y rapidez por encima de optimizaciones prematuras.
+
+> **Documentación operativa en `docs/`** (leer `docs/README.md` como índice):
+> auditoría con prioridades (02), SEO (03), rendimiento (04), especificación de
+> pagos (05), identidad MAGNÉTIC (06), roadmap (07), guía paso a paso del flujo
+> de venta (08) y guía UX/UI con checklist de aceptación (09). Ante un tema
+> cubierto por esos documentos, ejecutarlos en vez de re-analizar o improvisar.
 
 ### Principio rector
 No agregar infraestructura ni complejidad que el tamaño actual del negocio no justifique. Redis, S3, microservicios, GraphQL y similares **NO** entran en esta etapa. Se documentan como evolución futura (sección 11).
@@ -21,7 +31,7 @@ No agregar infraestructura ni complejidad que el tamaño actual del negocio no j
 
 | # | Decisión pendiente | Qué bloquea | Opciones |
 |---|---|---|---|
-| 1 | **Hosting** | Almacenamiento de imágenes y origen de PostgreSQL | Railway / Vercel / VPS. Recomendado: Railway + Cloudflare R2 |
+| 1 | **Hosting definitivo** | Dónde vivirá producción | **Provisional (validación del cliente): Vercel + Supabase**, ya funcionando. El definitivo se decidirá con el criterio: **mínimo costo sin perder rendimiento** (candidatos: quedarse en Vercel+Supabase free/pro, Railway, VPS). El código es portable (Prisma + adaptador de storage intercambiable) |
 | 2 | **IGV (18%)** | Cálculo del total a cobrar | (a) Precios ya incluyen IGV; (b) IGV se suma aparte; (c) cliente en RUS sin IGV |
 | 3 | **Cuentas de cliente** | Módulo de registro/login de compradores | (a) Con cuenta; (b) solo invitado; (c) ambas |
 | 4 | **Entrega de productos** | Módulo de envíos vs recojo | (a) Solo envío a domicilio; (b) solo recojo; (c) ambos |
@@ -66,13 +76,18 @@ PostgreSQL
 | TypeScript | Tipado en todo el proyecto | `strict: true` obligatorio |
 | Node.js 20 LTS+ | Runtime | |
 
-> **NOTA SOBRE HOSTING (pendiente de decidir):** afecta dos decisiones técnicas — el almacenamiento de imágenes (ver sección 3, Imágenes) y de dónde proviene la base de datos PostgreSQL. Opciones según destino: VPS propio (instalas PostgreSQL tú), o servicios gestionados (Neon, Supabase, Railway) que dan PostgreSQL listo. La elección no cambia el código gracias a Prisma, pero sí la configuración de despliegue.
+> **HOSTING (provisional, definitivo pendiente — decisión #1):** hoy la app corre en
+> **Vercel** y la BD/imágenes en **Supabase** (pooler en `DATABASE_URL`, conexión
+> directa en `DIRECT_URL` para migraciones) — es el entorno de validación del
+> cliente. La decisión final se tomará por costo/rendimiento; el código está
+> preparado para migrar: Prisma abstrae la BD y `lib/storage.ts` el almacenamiento
+> de imágenes (cambiar de proveedor = reescribir solo ese archivo).
 
 ### Base de datos
 | Tecnología | Uso |
 |---|---|
-| PostgreSQL | Base de datos relacional |
-| Prisma ORM | Acceso a datos, migraciones, tipado |
+| PostgreSQL (Supabase) | Base de datos relacional |
+| Prisma 7 (adapter `pg`, generator `prisma-client` → `src/generated/prisma`) | Acceso a datos, migraciones, tipado |
 
 ### Autenticación y seguridad
 | Tecnología | Uso | Por qué |
@@ -105,13 +120,9 @@ PostgreSQL
 ### Imágenes (esta etapa)
 | Tecnología | Uso | Notas |
 |---|---|---|
-| Almacenamiento por definir | Imágenes de productos | **DEPENDE DEL HOSTING (ver nota).** Migrar a S3/CDN cuando el volumen lo justifique (sección 11) |
-| `next/image` | Optimización automática (WebP/AVIF, resize, lazy load) | Obligatorio para toda imagen |
-
-> **NOTA SOBRE ALMACENAMIENTO DE IMÁGENES — DECISIÓN PENDIENTE:** el hosting aún no está decidido. Esto importa porque:
-> - Si se despliega en **Vercel, Railway o Render**: el filesystem es efímero (se borra en cada deploy). En ese caso las imágenes NO pueden guardarse en el filesystem; se necesita un servicio de almacenamiento de objetos (S3, Cloudflare R2, UploadThing) desde el inicio, aunque sea el plan gratuito.
-> - Si se despliega en **VPS propio (DigitalOcean, etc.)**: el filesystem es persistente y se pueden guardar imágenes localmente en esta etapa.
-> Definir el hosting antes de implementar la carga de imágenes.
+| **Supabase Storage** (bucket público) | Imágenes subidas desde el admin | Pipeline ya implementado: validación + re-proceso con **sharp** a WebP (`lib/images.ts` → `lib/upload.ts` → `lib/storage.ts`). El adaptador es intercambiable (R2/S3 = reescribir solo `lib/storage.ts`) |
+| `next/image` | Optimización automática (WebP/AVIF, resize, lazy load) | Obligatorio para toda imagen. `remotePatterns` restringido al bucket en `next.config.ts` |
+| Assets de marca | `public/brand/` (finales) · `docs/brand/` (material fuente) · `src/fonts/` (webfonts) | Ver `docs/06-identidad-magnetic.md` §3 |
 
 ### Emails
 | Tecnología | Uso |
@@ -139,7 +150,7 @@ Base de datos relacional normalizada. **24 tablas.** Definir todo en `schema.pri
 - `sessions` — sesiones gestionadas por Auth.js.
 
 ### Catálogo
-- `categories` — Polos, Pantalones, Packs. Con slug, imagen, orden.
+- `categories` — Conjuntos, Bodies, Pijamas, Lencería… Con slug, imagen, orden.
 - `products` — info base: nombre, slug, descripción, precio base, categoría, destacado, activo.
 - `product_variants` — combinación talla+color con SKU, precio y **stock propio**.
 - `product_images` — múltiples imágenes por producto, con orden y flag de principal.
@@ -211,7 +222,7 @@ Base de datos relacional normalizada. **24 tablas.** Definir todo en `schema.pri
 │   │   │       ├── contenido/       # Edición de page_sections
 │   │   │       └── usuarios/
 │   │   ├── api/
-│   │   │   └── webhooks/culqi/       # Route handler para webhook de pago
+│   │   │   └── webhooks/izipay/      # Route handler para webhook de pago (IPN)
 │   │   ├── layout.tsx
 │   │   ├── not-found.tsx            # 404 personalizada
 │   │   └── error.tsx                # 500 personalizada
@@ -220,22 +231,33 @@ Base de datos relacional normalizada. **24 tablas.** Definir todo en `schema.pri
 │   │   ├── shop/                    # Componentes de tienda
 │   │   └── admin/                   # Componentes de admin
 │   ├── lib/
-│   │   ├── db.ts                    # Cliente Prisma singleton
+│   │   ├── db.ts                    # Cliente Prisma singleton (adapter pg)
 │   │   ├── auth.ts                  # Config Auth.js
-│   │   ├── culqi.ts                 # Integración pagos
+│   │   ├── admin-auth.ts            # getAdminSession / clientIp
+│   │   ├── izipay.ts                # Integración pagos (al implementarse)
+│   │   ├── images.ts / upload.ts / storage.ts  # Pipeline de imágenes
+│   │   ├── money.ts / format.ts / cart-totals.ts
+│   │   ├── data/                    # Capa de lectura cacheada (products, filters)
 │   │   └── utils.ts
-│   ├── actions/                     # Server Actions (mutaciones)
-│   │   ├── products.ts
-│   │   ├── orders.ts
-│   │   ├── cart.ts
-│   │   └── auth.ts
+│   ├── actions/                     # Server Actions (products, variants,
+│   │                                # categories, product-images, site, auth,
+│   │                                # orders al implementarse)
 │   ├── schemas/                     # Schemas Zod
-│   ├── stores/                      # Zustand stores
+│   ├── stores/                      # Zustand stores (cart-store)
+│   ├── config/site.ts               # Config central de marca/navegación (ver 11.13)
+│   ├── hooks/                       # use-has-mounted, use-prefers-reduced-motion
+│   ├── fonts/                       # Webfonts .woff2 (next/font/local)
+│   ├── generated/prisma/            # Cliente Prisma generado (no editar)
 │   └── types/
+├── docs/                            # Documentación operativa (ver §1)
+├── public/brand/                    # Assets de marca finales
 ├── .env.example
 ├── CLAUDE.md
 └── README.md
 ```
+
+Notas de la estructura real: el carrito es un **sheet** (`components/shop/cart-sheet.tsx`),
+no una página `/carrito`; el catálogo vive en `/tienda` con filtros por URL.
 
 ---
 
@@ -340,7 +362,7 @@ Prioridad en el flujo de compra (carrito → checkout → pago → confirmación
 > El cliente confirmó que **maneja stock real con control de inventario.** El manejo correcto del stock es crítico: vender algo agotado genera reembolsos, reclamos y pérdida de confianza.
 
 1. **Stock confirmado:** la tienda maneja inventario real por variante (talla + color). Cada `product_variant` tiene su propio campo `stock`.
-2. **Descuento de stock:** se descuenta solo cuando el pago se confirma (respuesta válida de Izipay), no al agregar al carrito.
+2. **Descuento de stock:** se **RESERVA al crear el pedido** (decremento condicional dentro de la transacción de `createOrder`), no al agregar al carrito ni al confirmar el pago. Si el pago falla, expira o se cancela, se repone (regla 10). Esto hace imposible la sobreventa; el diseño completo está en `docs/05-pagos-izipay.md §2` — el cron de limpieza (11.7) es parte OBLIGATORIA de este esquema.
 3. **Validación en compra:** antes de confirmar el pedido, validar dentro de la transacción que hay stock suficiente de cada variante. Si no hay, abortar y notificar al usuario.
 4. **Stock concurrente:** si dos personas compran la última unidad al mismo tiempo, solo una completa. Validar y descontar stock dentro de `prisma.$transaction` con bloqueo adecuado.
 5. **Pedido:** se crea en estado `pendiente`, pasa a `pagado` solo tras confirmación válida de Izipay.
@@ -444,14 +466,17 @@ Validar transiciones en el servidor; no permitir saltos inválidos (ej. `pendien
 
 ## 11.3 Flujo de Pago con Izipay
 
-1. Usuario llega al checkout con su carrito validado (stock y precios recalculados en servidor).
-2. El servidor crea el pedido en estado `pendiente` y genera el token/sesión de pago con la API de Izipay (usando la clave API del servidor).
-3. El cliente (navegador) abre el formulario de Izipay con el SDK Web. Los datos de tarjeta van directo a Izipay, nunca al servidor propio.
-4. Izipay responde el resultado. El servidor **valida la firma HMAC** antes de confiar en el resultado.
-5. Si el pago es válido: dentro de una transacción Prisma, descontar stock + marcar pedido `pagado` + registrar en `payments` + enviar emails.
-6. Si el pago falla o el usuario abandona: el pedido queda `pendiente`; un proceso de limpieza lo cancela tras X tiempo (ver 11.5) y repone stock si se hubiera reservado.
+> La especificación completa y vinculante está en `docs/05-pagos-izipay.md`; el
+> plan de implementación paso a paso en `docs/08-implementacion-flujo-venta.md`.
 
-**Casos a manejar:** usuario cierra la ventana a mitad del pago, doble envío del formulario (idempotencia por `order_id`), respuesta tardía de Izipay.
+1. Usuario llega al checkout con su carrito (cliente); envía SOLO `{ variantId, quantity }[]` + datos del comprador.
+2. `createOrder` (Server Action), TODO dentro de `prisma.$transaction`: relee precios de BD, **valida y RESERVA stock** (decremento condicional), correlativo por secuencia, crea pedido `pendiente` con snapshot + pago `pendiente`. Luego genera el token/sesión de pago con la API de Izipay (clave API del servidor).
+3. El cliente (navegador) abre el formulario de Izipay con el SDK Web. Los datos de tarjeta van directo a Izipay, nunca al servidor propio.
+4. Izipay notifica por **IPN/webhook** (fuente de verdad; el retorno del navegador es solo UX). El servidor **valida la firma HMAC** (tiempo constante) + monto + moneda + transición de estado, con **idempotencia** por `transactionId`.
+5. Si el pago es válido: marcar pedido `pagado` + registrar en `payments` (JSON completo) + audit log + revalidar caché del catálogo + enviar emails (fuera de la transacción).
+6. Si el pago falla, expira o el usuario abandona: el pedido queda `pendiente`; el cron (11.7) lo cancela tras el plazo y **repone el stock reservado**.
+
+**Casos a manejar:** usuario cierra la ventana a mitad del pago, doble envío del formulario (clave de idempotencia generada al montar el checkout), IPN duplicado o tardío, monto alterado (rechazar aunque la firma valide).
 
 ---
 
@@ -472,7 +497,7 @@ Validar transiciones en el servidor; no permitir saltos inválidos (ej. `pendien
 
 El seed debe crear para desarrollo:
 - 1 usuario admin inicial (con password argon2id).
-- 3 categorías de ejemplo (Polos, Pantalones, Packs).
+- Categorías de ejemplo acordes al rubro (Conjuntos, Bodies, Pijamas).
 - ~10 productos de prueba con variantes (tallas/colores) y stock.
 - Tallas y colores base.
 - Configuración inicial de `site_settings`.
@@ -484,8 +509,8 @@ El seed debe crear para desarrollo:
 - **Moneda:** Soles peruanos (S/), código `PEN`.
 - **Formato de precio:** `S/ 1,234.56`.
 - **Zona horaria:** America/Lima (GMT-5).
-- **IGV (18%):** **PENDIENTE de confirmar (ver 1.1, decisión #2).** Centralizar el cálculo de impuestos en una sola función de servidor para poder ajustarlo cuando se confirme, sin tocar todo el código.
-- Guardar montos en la BD con precisión decimal adecuada (evitar errores de redondeo de punto flotante; usar `Decimal` de Prisma).
+- **IGV (18%):** **PENDIENTE de confirmar (ver 1.1, decisión #2).** El cálculo de impuestos y envío YA está centralizado en `src/lib/cart-totals.ts` (`computeOrderSummary`) — ajustar SOLO ahí cuando se confirme.
+- **Dinero: SIEMPRE en céntimos enteros** (`Int` en Prisma, sufijo `Cents` en los campos: `priceCents`, `totalCents`…). Se formatea a `S/ 1,234.56` solo en la presentación (`lib/money.ts` / `lib/format.ts`). **NUNCA usar `Decimal`, `Float` ni montos con punto decimal en BD o lógica** — regla firme del proyecto; así está implementado todo el schema y el código.
 
 ---
 
@@ -533,8 +558,9 @@ Todo intento de pago (exitoso y fallido) se registra en la tabla `payments` con 
 ## 11.9 Convenciones de Idioma
 
 - **Interfaz de usuario (UI):** español (tienda y panel admin). Textos visibles, mensajes de error al usuario, emails: en español.
-- **Código:** inglés. Nombres de variables, funciones, tablas, columnas, comentarios y commits en inglés.
-- Razón: el código en inglés es estándar de la industria y facilita mantenimiento; la UI en español sirve al cliente y sus usuarios.
+- **Código:** inglés. Nombres de variables, funciones, tablas, columnas y commits en inglés.
+- **Comentarios: en ESPAÑOL** (decisión del propietario del proyecto; así está escrito todo el código existente — mantener la consistencia).
+- Razón: el código en inglés es estándar de la industria; los comentarios y la UI en español sirven a quien mantiene y usa el proyecto.
 
 ---
 
@@ -640,33 +666,68 @@ Este proyecto usará skills de la comunidad instaladas en Claude Code. Reglas de
 
 ---
 
+## 11.13 Configuración Centralizada (nada de valores generales hardcodeados)
+
+**Regla:** todo valor "general" del sitio (marca, textos de portada, redes,
+contacto, costos, flags de features, mensajes de la cinta…) vive en **UN solo
+lugar** y los componentes lo consumen de ahí. Nunca escribir el mismo dato suelto
+en varios componentes.
+
+Tres niveles, según quién debe poder cambiarlo:
+
+| Nivel | Dónde vive | Quién lo cambia | Ejemplos |
+|---|---|---|---|
+| 1. Secretos y entorno | `.env` (validado en `src/lib/env.ts`) | Desarrollador | claves de BD/Izipay/Resend, `NEXT_PUBLIC_SITE_URL` |
+| 2. Config de código con defaults | `src/config/site.ts` (tipado, única fuente) | Desarrollador | nombre de marca, navegación, defaults de la cinta, redes |
+| 3. Administrable en runtime | tabla `site_settings` (leída vía `lib/site-settings.ts`), con los valores de nivel 2 como respaldo | **Admin desde el panel** | portada (imagen/título/subtítulo), cinta de anuncios, WhatsApp |
+
+**Patrón establecido (seguirlo):** el componente lee `getSiteSettings()` /
+`getAnnouncement()`; si no hay valor en BD, cae al default de `config/site.ts`.
+Así ya funcionan la portada y la cinta — cualquier valor nuevo sigue el mismo
+camino.
+
+**Al detectar un valor general hardcodeado en un componente** (un teléfono, un
+texto de marca, un costo, un límite): moverlo a su nivel correspondiente. Y al
+crear features nuevas, preguntarse siempre: ¿el cliente querrá cambiar esto sin
+programador? → nivel 3 (site_settings + campo en `/admin/apariencia` o donde
+corresponda).
+
+Constantes técnicas (tamaños de imagen, límites de validación) siguen la regla
+de "sin valores mágicos" (11.11): constante nombrada en el módulo que la usa o
+en `lib/` si se comparte.
+
+---
+
 ## 12. Comandos Clave
+
+El gestor de paquetes es **pnpm**.
 
 ```bash
 # Desarrollo
-npm run dev
+pnpm dev
 
-# Prisma
-npx prisma migrate dev --name <nombre>   # Crear migración
-npx prisma generate                       # Regenerar cliente
-npx prisma studio                         # Ver BD en UI
-npx prisma db seed                        # Cargar datos de prueba
+# Prisma (scripts reales del package.json)
+pnpm db:migrate        # prisma migrate dev
+pnpm db:generate       # prisma generate
+pnpm db:studio         # ver BD en UI
+pnpm db:seed           # datos de prueba (tsx prisma/seed.ts)
+pnpm db:reset          # reset + seed
 
 # Calidad
-npm run lint
-npm run test          # Vitest
-npm run test:e2e      # Playwright
+pnpm lint
+pnpm test              # Vitest (añadir script al crear los primeros tests)
+pnpm test:e2e          # Playwright (ídem)
 
 # Build
-npm run build
-npm run start
+pnpm build
+pnpm start             # no dejar servers colgados ocupando el puerto 3000
 ```
 
 ---
 
 ## 13. Convenciones para Claude Code
 
-1. **Antes de codear:** revisar este documento, el `schema.prisma`, las buenas prácticas (11.11) y las skills relevantes instaladas (11.12).
+1. **Antes de codear:** revisar este documento, **`docs/README.md` y el doc de `docs/` que cubra la tarea** (auditoría 02, SEO 03, rendimiento 04, pagos 05/08, identidad 06, UX/UI 09), el `schema.prisma`, las buenas prácticas (11.11) y las skills relevantes instaladas (11.12).
 2. **Validación:** toda Server Action valida su input con Zod antes de tocar la BD.
 3. **Seguridad primero:** nunca exponer lógica de precio/stock al cliente; siempre validar en servidor.
 4. **No sobre-ingeniería:** no agregar dependencias ni infraestructura de la sección 11 sin que se solicite explícitamente. Aplicar SOLID/patrones con criterio, no por dogma (11.11).
@@ -678,6 +739,9 @@ npm run start
 10. **Transacciones:** operaciones que afectan stock + pedido + pago van en `prisma.$transaction`.
 11. **Trazabilidad:** registrar en `audit_logs` los eventos de negocio relevantes (11.8).
 12. **Decisiones pendientes:** ante un punto de la sección 1.1 sin confirmar, detenerse y preguntar; marcar `// TODO: confirmar con cliente`.
-13. **Idioma:** código en inglés, UI en español (11.9).
+13. **Idioma:** código en inglés, comentarios y UI en español (11.9).
 14. **Commits:** Conventional Commits en inglés (11.10).
 15. **Skills:** consultar la skill del dominio antes de generar su código; si contradice una regla crítica de seguridad/negocio de este documento, prevalece este documento (11.12).
+16. **Dinero:** céntimos enteros siempre; nunca `Decimal`/`Float` (11.6).
+17. **Config centralizada:** ningún valor general hardcodeado en componentes; usar `.env` / `config/site.ts` / `site_settings` según el nivel (11.13). Al crear features, evaluar si el valor debe ser administrable por el cliente.
+18. **UI con criterio:** toda pantalla nueva cumple el checklist de `docs/09-guia-ux-ui.md §7` (estados vacíos que guían, loading/éxito/error, una sola acción primaria, accesibilidad).
