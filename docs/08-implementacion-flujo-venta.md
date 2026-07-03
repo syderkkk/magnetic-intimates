@@ -316,7 +316,13 @@ el endpoint ya está excluido de indexación por `robots.ts` (`/api`).
 - Pedidos `pendiente` con `createdAt < now() - 24h` → por cada uno, en
   transacción: estado `cancelado` (validando transición) + `increment` del stock
   de cada `order_item` con `variantId` + audit log. Después `revalidateTag`.
-- Programación en `vercel.json`: `{ "crons": [{ "path": "/api/cron/cleanup", "schedule": "0 * * * *" }] }`.
+- Programación en `vercel.json`: `{ "crons": [{ "path": "/api/cron/cleanup", "schedule": "0 8 * * *" }] }`
+  (una vez al día, 08:00 UTC ≈ 3am Lima). ⚠️ El plan **Hobby** de Vercel limita
+  los cron jobs a como máximo una vez al día — un schedule más frecuente
+  (`0 * * * *`, cada hora) hace fallar el deploy completo. Como el plazo de
+  limpieza ya es de 24h, correr el cron 1 vez al día es suficiente (deja como
+  máximo ~25h de reserva de stock en el peor caso, no 24h exactas). Si el
+  proyecto sube a plan **Pro**, se puede volver a `0 * * * *` sin tocar el código.
 - Registrar resultado en el logger (cuántos cancelados/repuestos).
 
 ## Paso 8 — Emails (Resend + React Email, ya instalados)
