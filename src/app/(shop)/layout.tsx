@@ -1,6 +1,7 @@
 import { AnnouncementBar } from "@/components/shop/announcement-bar";
 import { SiteFooter } from "@/components/shop/site-footer";
 import { SiteHeader } from "@/components/shop/site-header";
+import { WhatsAppButton } from "@/components/shop/whatsapp-button";
 import { getAnnouncement } from "@/lib/site-settings";
 
 /**
@@ -23,6 +24,7 @@ export default async function ShopLayout({
         {children}
       </main>
       <SiteFooter />
+      <WhatsAppButton />
     </>
   );
 }

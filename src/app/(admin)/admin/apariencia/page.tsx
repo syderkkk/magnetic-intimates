@@ -9,6 +9,7 @@ import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { AdminTextForm } from "@/components/admin/admin-text-form";
 import { AnnouncementForm } from "@/components/admin/announcement-form";
 import { ImageUploader } from "@/components/admin/image-uploader";
+import { siteConfig } from "@/config/site";
 import { getAnnouncement, getSiteSettings, SETTING_KEYS } from "@/lib/site-settings";
 
 export const metadata: Metadata = { title: "Apariencia" };
@@ -57,7 +58,7 @@ export default async function AppearancePage() {
               action={updateSiteText}
               valueKey="value"
               extraFields={{ key: SETTING_KEYS.heroTitle }}
-              placeholder="Esenciales que se sienten como tú"
+              placeholder={siteConfig.hero.title}
             />
             <AdminTextForm
               label="Subtítulo"
@@ -66,7 +67,7 @@ export default async function AppearancePage() {
               valueKey="value"
               extraFields={{ key: SETTING_KEYS.heroSubtitle }}
               multiline
-              placeholder="Lencería y prendas íntimas con calidad y comodidad."
+              placeholder={siteConfig.hero.subtitle}
             />
             <div>
               <p className="mb-2 text-sm font-medium">Imagen de portada</p>

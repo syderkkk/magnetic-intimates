@@ -13,6 +13,7 @@ import { CategorySection } from "@/components/shop/category-section";
 import { ProductGrid } from "@/components/shop/product-grid";
 import { Reveal } from "@/components/shop/reveal";
 import { Button } from "@/components/ui/button";
+import { siteConfig } from "@/config/site";
 import { getFeaturedProducts, getLatestProducts } from "@/lib/data/products";
 import { getSiteSettings, SETTING_KEYS } from "@/lib/site-settings";
 
@@ -53,11 +54,9 @@ export default async function HomePage() {
 
   // Portada gestionable desde el panel (Apariencia); con respaldos por defecto.
   const heroImage = settings[SETTING_KEYS.heroImage];
-  const heroTitle =
-    settings[SETTING_KEYS.heroTitle] || "Esenciales que se sienten como tú";
+  const heroTitle = settings[SETTING_KEYS.heroTitle] || siteConfig.hero.title;
   const heroSubtitle =
-    settings[SETTING_KEYS.heroSubtitle] ||
-    "Lencería y prendas íntimas que combinan comodidad y elegancia, todos los días.";
+    settings[SETTING_KEYS.heroSubtitle] || siteConfig.hero.subtitle;
 
   return (
     <>

@@ -75,6 +75,19 @@ export const siteConfig = {
   locale: "es_PE",
 
   /**
+   * Portada del inicio (nivel 2: default de código). El admin puede
+   * sobrescribir título/subtítulo/imagen desde Apariencia (nivel 3,
+   * `site_settings`) — CLAUDE.md §11.13. Única fuente de este texto: úsalo
+   * tanto en la página como en el placeholder del formulario de admin para
+   * que no queden dos copias del mismo texto pudiendo desincronizarse.
+   */
+  hero: {
+    title: "Encuentra tu magnetismo",
+    subtitle:
+      "Lencería con actitud: calidad y comodidad que se sienten todos los días, no solo en ocasiones especiales.",
+  },
+
+  /**
    * Navegación principal. "Tienda" es el catálogo completo, en /tienda (etiqueta
    * y URL coinciden). Las colecciones/campañas concretas vivirán bajo
    * /coleccion/[slug] cuando existan, reutilizando la misma página de catálogo.

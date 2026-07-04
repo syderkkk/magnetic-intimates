@@ -24,9 +24,20 @@ function InstagramIcon({ className }: { className?: string }) {
   );
 }
 
-// Los enlaces de información/legal (Nosotros, Contacto, Libro de Reclamaciones,
-// Términos) se mostrarán cuando existan esas páginas (fase legal). Por ahora se
-// omiten para no enlazar a 404.
+/** Enlaces de empresa (páginas de confianza: quiénes somos, cómo contactarnos). */
+const COMPANY_LINKS = [
+  { label: "Nosotros", href: "/nosotros" },
+  { label: "Contacto", href: "/contacto" },
+  { label: "Libro de Reclamaciones", href: "/libro-reclamaciones" },
+];
+
+/** Enlaces legales (CLAUDE.md §10). */
+const LEGAL_LINKS = [
+  { label: "Política de privacidad", href: "/politica-privacidad" },
+  { label: "Términos y condiciones", href: "/terminos-y-condiciones" },
+  { label: "Política de envíos", href: "/politica-envios" },
+  { label: "Cambios y devoluciones", href: "/politica-devoluciones" },
+];
 
 /**
  * Pie de página del sitio: negro de marca con texto sand — cierra la página
@@ -42,9 +53,9 @@ export function SiteFooter() {
       <Monogram className="pointer-events-none absolute -top-10 -right-10 size-56 text-background/10 sm:size-72" />
 
       <div className="relative mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 gap-10 md:grid-cols-3">
+        <div className="grid grid-cols-2 gap-10 lg:grid-cols-[2fr_1fr_1fr_1fr]">
           {/* Marca */}
-          <div className="col-span-2 md:col-span-2">
+          <div className="col-span-2 lg:col-span-1">
             <Link
               href="/"
               aria-label={`${siteConfig.name} — Inicio`}
@@ -53,8 +64,8 @@ export function SiteFooter() {
               <Logo />
             </Link>
             <p className="mt-4 max-w-xs text-sm text-background/70">
-              Lencería y prendas íntimas que combinan calidad, comodidad y
-              elegancia.
+              Intimacy with attitude: calidad, comodidad y una actitud que se
+              nota, todos los días.
             </p>
             <div className="mt-5 flex items-center gap-3">
               <Link
@@ -72,10 +83,46 @@ export function SiteFooter() {
           {/* Navegación */}
           <nav aria-label="Navegación del pie">
             <h2 className="text-xs font-medium tracking-wider text-background/50 uppercase">
-              Explorar
+              Tienda
             </h2>
             <ul className="mt-4 space-y-3 text-sm">
               {siteConfig.nav.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className="text-background/80 transition-colors hover:text-background"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          <nav aria-label="Empresa">
+            <h2 className="text-xs font-medium tracking-wider text-background/50 uppercase">
+              Empresa
+            </h2>
+            <ul className="mt-4 space-y-3 text-sm">
+              {COMPANY_LINKS.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className="text-background/80 transition-colors hover:text-background"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          <nav aria-label="Legal">
+            <h2 className="text-xs font-medium tracking-wider text-background/50 uppercase">
+              Legal
+            </h2>
+            <ul className="mt-4 space-y-3 text-sm">
+              {LEGAL_LINKS.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}

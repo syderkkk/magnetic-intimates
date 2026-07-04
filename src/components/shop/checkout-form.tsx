@@ -23,6 +23,7 @@ import { createOrder } from "@/actions/orders";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { FormField } from "@/components/shop/form-field";
 import { useHasMounted } from "@/hooks/use-has-mounted";
 import { computeOrderSummary } from "@/lib/cart-totals";
 import { formatPrice } from "@/lib/money";
@@ -130,7 +131,7 @@ export function CheckoutForm() {
               Contacto
             </legend>
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field
+              <FormField
                 label="Correo electrónico"
                 htmlFor="email"
                 error={errors.email?.message}
@@ -145,8 +146,8 @@ export function CheckoutForm() {
                   className="h-11"
                   {...register("email")}
                 />
-              </Field>
-              <Field
+              </FormField>
+              <FormField
                 label="Teléfono"
                 htmlFor="phone"
                 error={errors.phone?.message}
@@ -161,7 +162,7 @@ export function CheckoutForm() {
                   className="h-11"
                   {...register("phone")}
                 />
-              </Field>
+              </FormField>
             </div>
           </fieldset>
 
@@ -171,7 +172,7 @@ export function CheckoutForm() {
               Datos de entrega
             </legend>
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field
+              <FormField
                 label="Nombre"
                 htmlFor="firstName"
                 error={errors.firstName?.message}
@@ -183,8 +184,8 @@ export function CheckoutForm() {
                   className="h-11"
                   {...register("firstName")}
                 />
-              </Field>
-              <Field
+              </FormField>
+              <FormField
                 label="Apellidos"
                 htmlFor="lastName"
                 error={errors.lastName?.message}
@@ -196,10 +197,10 @@ export function CheckoutForm() {
                   className="h-11"
                   {...register("lastName")}
                 />
-              </Field>
+              </FormField>
             </div>
 
-            <Field
+            <FormField
               label="Dirección"
               htmlFor="address"
               error={errors.address?.message}
@@ -212,10 +213,10 @@ export function CheckoutForm() {
                 className="h-11"
                 {...register("address")}
               />
-            </Field>
+            </FormField>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field
+              <FormField
                 label="Distrito"
                 htmlFor="district"
                 error={errors.district?.message}
@@ -227,8 +228,8 @@ export function CheckoutForm() {
                   className="h-11"
                   {...register("district")}
                 />
-              </Field>
-              <Field
+              </FormField>
+              <FormField
                 label="Ciudad / Departamento"
                 htmlFor="city"
                 error={errors.city?.message}
@@ -240,10 +241,10 @@ export function CheckoutForm() {
                   className="h-11"
                   {...register("city")}
                 />
-              </Field>
+              </FormField>
             </div>
 
-            <Field
+            <FormField
               label="Referencia (opcional)"
               htmlFor="reference"
               error={errors.reference?.message}
@@ -255,7 +256,7 @@ export function CheckoutForm() {
                 className="h-11"
                 {...register("reference")}
               />
-            </Field>
+            </FormField>
 
             {/* TODO: confirmar con cliente — método de entrega (envío a domicilio
                 vs. recojo, decisión #4) y zonas/costos (decisión #5). Aquí irá el
@@ -422,37 +423,6 @@ export function CheckoutForm() {
         </aside>
       </div>
     </section>
-  );
-}
-
-/** Etiqueta + campo + mensaje de error accesible. */
-function Field({
-  label,
-  htmlFor,
-  error,
-  children,
-}: {
-  label: string;
-  htmlFor: string;
-  error?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="space-y-1.5">
-      <label htmlFor={htmlFor} className="block text-sm font-medium">
-        {label}
-      </label>
-      {children}
-      {error ? (
-        <p
-          id={`${htmlFor}-error`}
-          role="alert"
-          className="text-xs text-destructive"
-        >
-          {error}
-        </p>
-      ) : null}
-    </div>
   );
 }
 
