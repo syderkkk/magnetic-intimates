@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { slugify } from "@/lib/data/filters";
 import { db } from "@/lib/db";
+import { Monogram } from "./monogram";
 
 /**
  * Sección "Explora por categoría" del inicio. Lee las categorías activas de la
@@ -40,28 +41,43 @@ export async function CategorySection() {
             aria-label={`Ver categoría ${category.name}`}
           >
             {category.imageUrl ? (
-              <Image
-                src={category.imageUrl}
-                alt={`Categoría ${category.name} de MAGNÉTIC`}
-                fill
-                sizes="(max-width: 640px) 50vw, 25vw"
-                className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
-              />
+              <>
+                <Image
+                  src={category.imageUrl}
+                  alt={`Categoría ${category.name} de MAGNÉTIC`}
+                  fill
+                  sizes="(max-width: 640px) 50vw, 25vw"
+                  className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+                />
+                {/* Degradado inferior para legibilidad del texto sobre la foto. */}
+                <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/10 to-transparent" />
+                <div className="absolute bottom-0 left-0 p-5 text-white">
+                  <p className="font-display text-lg font-semibold leading-tight">
+                    {category.name}
+                  </p>
+                  <span className="mt-1.5 inline-flex items-center gap-1 text-xs text-white/75 transition-[gap] duration-300 group-hover:gap-2">
+                    Explorar
+                    <ArrowRight className="size-3" aria-hidden="true" />
+                  </span>
+                </div>
+              </>
             ) : (
-              <div className="absolute inset-0 bg-linear-to-br from-muted-foreground to-foreground transition-transform duration-500 ease-out group-hover:scale-105" />
+              <>
+                {/* Sin foto todavía: sand/nude de marca + monograma, nunca un
+                    bloque oscuro genérico (docs/06 §5.4). */}
+                <div className="absolute inset-0 bg-linear-to-br from-accent/55 via-accent/25 to-background transition-transform duration-500 ease-out group-hover:scale-105" />
+                <Monogram className="pointer-events-none absolute inset-0 m-auto size-16 text-foreground/10" />
+                <div className="absolute bottom-0 left-0 p-5 text-foreground">
+                  <p className="font-display text-lg font-semibold leading-tight">
+                    {category.name}
+                  </p>
+                  <span className="mt-1.5 inline-flex items-center gap-1 text-xs text-muted-foreground transition-[gap] duration-300 group-hover:gap-2">
+                    Explorar
+                    <ArrowRight className="size-3" aria-hidden="true" />
+                  </span>
+                </div>
+              </>
             )}
-            {/* Degradado inferior para legibilidad */}
-            <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/10 to-transparent" />
-
-            <div className="absolute bottom-0 left-0 p-5 text-white">
-              <p className="font-display text-lg font-semibold leading-tight">
-                {category.name}
-              </p>
-              <span className="mt-1.5 inline-flex items-center gap-1 text-xs text-white/75 transition-[gap] duration-300 group-hover:gap-2">
-                Explorar
-                <ArrowRight className="size-3" aria-hidden="true" />
-              </span>
-            </div>
           </Link>
         ))}
       </div>

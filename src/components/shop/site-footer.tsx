@@ -4,7 +4,8 @@ import { siteConfig } from "@/config/site";
 import { Logo } from "./logo";
 import { Monogram } from "./monogram";
 
-/** Glifo de Instagram (lucide v1 ya no incluye íconos de marca). */
+/** Glifos de redes (lucide v1 ya no incluye íconos de marca); mismo trazo
+ *  fino y contenedor redondeado para que las tres se vean como un set. */
 function InstagramIcon({ className }: { className?: string }) {
   return (
     <svg
@@ -20,6 +21,43 @@ function InstagramIcon({ className }: { className?: string }) {
       <rect x="2" y="2" width="20" height="20" rx="5" />
       <circle cx="12" cy="12" r="4" />
       <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+function FacebookIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.6}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <rect x="2" y="2" width="20" height="20" rx="5" />
+      <path d="M14.5 8.75h-1.25a1.5 1.5 0 0 0-1.5 1.5V12M9.5 12h5M11.75 12v7.25" />
+    </svg>
+  );
+}
+
+function TikTokIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.6}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <rect x="2" y="2" width="20" height="20" rx="5" />
+      <circle cx="10.5" cy="15.5" r="2.5" />
+      <path d="M13 15.5V7.5c.45 1.7 1.8 2.9 3.5 3.05" />
     </svg>
   );
 }
@@ -50,7 +88,7 @@ export function SiteFooter() {
 
   return (
     <footer className="relative overflow-hidden bg-foreground text-background">
-      <Monogram className="pointer-events-none absolute -top-10 -right-10 size-56 text-background/10 sm:size-72" />
+      <Monogram className="pointer-events-none absolute top-1/2 right-6 size-40 -translate-y-1/2 text-background/10 sm:right-12 sm:size-56" />
 
       <div className="relative mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
         <div className="grid grid-cols-2 gap-10 lg:grid-cols-[2fr_1fr_1fr_1fr]">
@@ -76,6 +114,24 @@ export function SiteFooter() {
                 className="flex size-9 items-center justify-center rounded-full border border-background/20 text-background/70 transition-colors hover:bg-background/10 hover:text-background"
               >
                 <InstagramIcon className="size-4" />
+              </Link>
+              <Link
+                href={siteConfig.social.facebook}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Facebook"
+                className="flex size-9 items-center justify-center rounded-full border border-background/20 text-background/70 transition-colors hover:bg-background/10 hover:text-background"
+              >
+                <FacebookIcon className="size-4" />
+              </Link>
+              <Link
+                href={siteConfig.social.tiktok}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="TikTok"
+                className="flex size-9 items-center justify-center rounded-full border border-background/20 text-background/70 transition-colors hover:bg-background/10 hover:text-background"
+              >
+                <TikTokIcon className="size-4" />
               </Link>
             </div>
           </div>

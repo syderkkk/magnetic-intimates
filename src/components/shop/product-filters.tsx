@@ -171,7 +171,19 @@ function FilterSection({
           open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
         )}
       >
-        <div className="overflow-hidden">
+        {/* -mx-2 + px-2 EN ESTE MISMO div (mismo truco que usan las filas de
+            abajo): se cancelan entre sí para el contenido, que sigue
+            arrancando en el mismo punto de siempre (alineado con el título
+            de la sección) — pero "overflow-hidden" recorta según la CAJA CON
+            MARGEN (más ancha), no la de adentro, así el límite de recorte
+            queda 8px más generoso a cada lado: justo el margen que las filas
+            ya usan para su halo/fondo de hover. Un padding positivo solo
+            (sin el margen negativo) desplazaría el contenido 8px y lo
+            desalinearía del título.
+            "overflow-hidden" a secas (no solo -y): si el eje Y queda oculto y
+            el X se deja "visible", el navegador lo vuelve "auto" solo y
+            aparece una barra de scroll horizontal — hay que ocultar ambos. */}
+        <div className="-mx-2 overflow-hidden px-2">
           <div className="pt-3">{children}</div>
         </div>
       </div>

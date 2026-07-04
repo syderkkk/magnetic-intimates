@@ -18,8 +18,18 @@ import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils";
 import { Logo } from "./logo";
 
+interface NavCategory {
+  name: string;
+  slug: string;
+}
+
+interface MobileNavProps {
+  /** Mismas categorías que el desplegable de escritorio (ver `site-header.tsx`). */
+  categories: NavCategory[];
+}
+
 /** Navegación para móvil: botón hamburguesa que abre un panel lateral. */
-export function MobileNav() {
+export function MobileNav({ categories }: MobileNavProps) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
 
@@ -54,27 +64,49 @@ export function MobileNav() {
           </SheetDescription>
         </SheetHeader>
 
-        <nav className="flex flex-col gap-1 px-3 py-4" aria-label="Navegación principal">
+        <nav
+          className="flex flex-col gap-1 px-3 py-4"
+          aria-label="Navegación principal"
+        >
           {siteConfig.nav.map((link) => {
             const active =
               link.href === "/"
                 ? pathname === "/"
                 : pathname.startsWith(link.href);
+            const showCategories =
+              link.href === "/tienda" && categories.length > 0;
             return (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setOpen(false)}
-                aria-current={active ? "page" : undefined}
-                className={cn(
-                  "rounded-lg px-3 py-3 text-lg font-medium transition-colors",
-                  active
-                    ? "bg-muted text-foreground"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                )}
-              >
-                {link.label}
-              </Link>
+              <div key={link.href}>
+                <Link
+                  href={link.href}
+                  onClick={() => setOpen(false)}
+                  aria-current={active ? "page" : undefined}
+                  className={cn(
+                    "block rounded-lg px-3 py-3 text-lg font-medium transition-colors",
+                    active
+                      ? "bg-muted text-foreground"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  )}
+                >
+                  {link.label}
+                </Link>
+                {/* Categorías: navegación rápida sin pasar por /tienda a filtrar a mano. */}
+                {showCategories ? (
+                  <ul className="mt-1 mb-2 ml-3 space-y-0.5 border-l pl-3">
+                    {categories.map((category) => (
+                      <li key={category.slug}>
+                        <Link
+                          href={`/tienda?cat=${category.slug}`}
+                          onClick={() => setOpen(false)}
+                          className="text-muted-foreground hover:bg-muted hover:text-foreground block rounded-lg px-3 py-2 text-sm transition-colors"
+                        >
+                          {category.name}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+              </div>
             );
           })}
         </nav>

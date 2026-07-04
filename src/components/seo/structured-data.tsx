@@ -12,9 +12,13 @@ export function StructuredData() {
     "@type": "Organization",
     name: siteConfig.name,
     url: siteConfig.url,
-    logo: `${siteConfig.url}/nue_intime_logo.webp`,
+    logo: `${siteConfig.url}/brand/logo-negro-fondo-blanco.webp`,
     description: siteConfig.description,
-    sameAs: [siteConfig.social.instagram].filter(Boolean),
+    sameAs: [
+      siteConfig.social.instagram,
+      siteConfig.social.facebook,
+      siteConfig.social.tiktok,
+    ].filter(Boolean),
   };
 
   const website = {

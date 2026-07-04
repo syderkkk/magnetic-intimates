@@ -101,12 +101,18 @@ export const siteConfig = {
   social: {
     instagram: "https://instagram.com",
     tiktok: "https://tiktok.com",
-    whatsapp: "",
+    facebook: "https://facebook.com",
+    // TODO: confirmar con cliente — número real de WhatsApp del negocio.
+    // Placeholder SOLO para previsualizar el botón flotante; reemplazar los
+    // dígitos por el número real (con código de país) antes de publicar.
+    whatsapp: "51999999999",
   },
 
   /**
-   * Barra de anuncios. Negra con texto blanco por defecto (identidad de marca).
-   * Todo aquí es ajustable: contenido, modo, velocidad, dirección, íconos y color.
+   * Barra de anuncios. Negra con texto sand — funciona bien como remate junto
+   * al footer (decisión confirmada con el cliente 2026-07-04, tras probar la
+   * variante nude). Todo aquí es ajustable: contenido, modo, velocidad,
+   * dirección, íconos y color.
    */
   announcement: {
     enabled: true,
@@ -115,8 +121,8 @@ export const siteConfig = {
     speedSeconds: 30,
     pauseOnHover: true,
     size: "sm",
-    background: "#0a0a0a",
-    foreground: "#ffffff",
+    background: "#0e0e0d",
+    foreground: "#f7f4ef",
     items: [
       { id: "envios", text: "Envíos a todo el Perú", icon: "truck" },
       {

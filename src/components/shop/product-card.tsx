@@ -1,14 +1,13 @@
-import Image from "next/image";
 import Link from "next/link";
 
 import { discountPercent, formatPrice } from "@/lib/money";
 import { totalStock } from "@/lib/product-variants";
-import { cn } from "@/lib/utils";
 import type { Product } from "@/types/product";
 import { AddToCartButton } from "./add-to-cart-button";
 import { FavoriteButton } from "./favorite-button";
 import { NoImage } from "./no-image";
 import { ProductBadgeChip } from "./product-badge-chip";
+import { ProductCardMedia } from "./product-card-media";
 
 interface ProductCardProps {
   product: Product;
@@ -19,14 +18,14 @@ interface ProductCardProps {
 /**
  * Tarjeta de producto — estética editorial monocroma de MAGNÉTIC.
  *
- * Imagen a sangre con esquinas rectas (sin radio) para un look de galería. Al
- * pasar el cursor, la foto principal se sustituye por la segunda (CSS puro; en
- * táctil se revela al tocar) con un leve zoom. El botón "Agregar" aparece al
- * hover en escritorio y permanece visible en táctil; el corazón de favoritos y
- * el badge quedan siempre a la vista.
+ * Imagen a sangre con esquinas rectas (sin radio) para un look de galería.
+ * Si el producto tiene más de una foto, aparecen flechas (`ProductCardMedia`)
+ * para recorrerlas sin entrar a la ficha. El botón "Agregar" aparece al hover
+ * en escritorio y permanece visible en táctil; el corazón de favoritos y el
+ * badge quedan siempre a la vista.
  */
 export function ProductCard({ product, priority = false }: ProductCardProps) {
-  const [primary, secondary] = product.images;
+  const hasImages = product.images.length > 0;
 
   const discount = product.compareAtPriceCents
     ? discountPercent(product.compareAtPriceCents, product.priceCents)
@@ -40,32 +39,9 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
   return (
     <article className="group/card relative flex flex-col">
       <div className="relative aspect-4/5 w-full overflow-hidden bg-muted">
-        {primary ? (
+        {hasImages ? (
           <>
-            {/* Imagen principal */}
-            <Image
-              src={primary.url}
-              alt={primary.alt}
-              fill
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              priority={priority}
-              className={cn(
-                "object-cover transition-[opacity,transform] duration-600 ease-out",
-                "group-hover/card:scale-[1.04]",
-                secondary && "group-hover/card:opacity-0",
-              )}
-            />
-
-            {/* Imagen secundaria (se revela al hover/tap) */}
-            {secondary ? (
-              <Image
-                src={secondary.url}
-                alt={secondary.alt}
-                fill
-                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                className="object-cover opacity-0 transition-[opacity,transform] duration-600 ease-out group-hover/card:scale-[1.04] group-hover/card:opacity-100"
-              />
-            ) : null}
+            <ProductCardMedia images={product.images} priority={priority} />
 
             {/* Sombreado inferior sutil al hover: mejora la legibilidad del botón. */}
             <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-linear-to-t from-black/15 to-transparent opacity-0 transition-opacity duration-300 group-hover/card:opacity-100" />
@@ -145,7 +121,7 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
             </span>
           ) : null}
           {discount > 0 ? (
-            <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium tabular-nums">
+            <span className="bg-muted px-1.5 py-0.5 text-[10px] font-medium tabular-nums">
               -{discount}%
             </span>
           ) : null}

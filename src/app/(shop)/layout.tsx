@@ -2,6 +2,8 @@ import { AnnouncementBar } from "@/components/shop/announcement-bar";
 import { SiteFooter } from "@/components/shop/site-footer";
 import { SiteHeader } from "@/components/shop/site-header";
 import { WhatsAppButton } from "@/components/shop/whatsapp-button";
+import { slugify } from "@/lib/data/filters";
+import { db } from "@/lib/db";
 import { getAnnouncement } from "@/lib/site-settings";
 
 /**
@@ -14,12 +16,25 @@ export default async function ShopLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const announcement = await getAnnouncement();
+  const [announcement, categories] = await Promise.all([
+    getAnnouncement(),
+    db.category.findMany({
+      where: { isActive: true },
+      orderBy: { position: "asc" },
+      select: { name: true },
+    }),
+  ]);
+
+  // Para el desplegable "Tienda" del header (categorías → /tienda?cat=slug).
+  const navCategories = categories.map((c) => ({
+    name: c.name,
+    slug: slugify(c.name),
+  }));
 
   return (
     <>
       <AnnouncementBar config={announcement} />
-      <SiteHeader />
+      <SiteHeader categories={navCategories} />
       <main id="contenido" className="flex-1">
         {children}
       </main>

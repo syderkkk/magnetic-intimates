@@ -1,6 +1,15 @@
 "use client";
 
-import { Check, ChevronDown, Minus, Plus, RefreshCw, Truck } from "lucide-react";
+import {
+  Check,
+  ChevronDown,
+  Loader2,
+  Minus,
+  Plus,
+  RefreshCw,
+  Truck,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -27,6 +36,7 @@ const SHIPPING_INFO =
   "Envíos a todo el Perú; coordinamos el método y costo según tu zona. Cambios fáciles dentro de los plazos vigentes si la talla no es la indicada.";
 
 export function ProductDetail({ product }: { product: Product }) {
+  const router = useRouter();
   const variants = useMemo(() => getVariants(product), [product]);
   const productStock = useMemo(() => totalStock(product), [product]);
 
@@ -40,9 +50,12 @@ export function ProductDetail({ product }: { product: Product }) {
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
   const [sizeError, setSizeError] = useState(false);
+  const [buying, setBuying] = useState(false);
 
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const sizeGroupRef = useRef<HTMLDivElement>(null);
+  const ctaRef = useRef<HTMLDivElement>(null);
+  const [ctaVisible, setCtaVisible] = useState(true);
   const addItem = useCartStore((s) => s.addItem);
 
   useEffect(
@@ -51,6 +64,19 @@ export function ProductDetail({ product }: { product: Product }) {
     },
     [],
   );
+
+  // Barra fija de "Agregar al carrito" en mobile (docs/09 §4): se muestra solo
+  // cuando el CTA inline salió de vista, para no duplicarlo innecesariamente.
+  useEffect(() => {
+    const el = ctaRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setCtaVisible(entry?.isIntersecting ?? true),
+      { rootMargin: "-56px 0px 0px 0px" },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   const selectionComplete =
     (!needsSize || !!selectedSize) && (!needsColor || !!selectedColor);
@@ -86,14 +112,15 @@ export function ProductDetail({ product }: { product: Product }) {
     setQuantity(1);
   }
 
-  function handleAddToCart() {
+  /** Agrega la selección actual al carrito. Devuelve false si falta talla o no hay stock. */
+  function addSelectionToCart() {
     // Falta elegir talla: en vez de un botón muerto, avisamos y llevamos foco.
     if (needsSize && !selectedSize) {
       setSizeError(true);
       sizeGroupRef.current?.scrollIntoView({ block: "center", behavior: "smooth" });
-      return;
+      return false;
     }
-    if (hardDisabled || !selectedVariant) return;
+    if (hardDisabled || !selectedVariant) return false;
 
     const img = product.images[0];
 
@@ -116,20 +143,28 @@ export function ProductDetail({ product }: { product: Product }) {
       },
       quantity,
     );
+    return true;
+  }
 
+  function handleAddToCart() {
+    if (!addSelectionToCart()) return;
     setAdded(true);
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => setAdded(false), 1800);
   }
 
+  // "Comprar ahora": agrega y salta directo al checkout (SSR, recalcula precio
+  // y stock frescos ahí — este botón solo ahorra el paso de abrir el carrito).
+  function handleBuyNow() {
+    if (!addSelectionToCart()) return;
+    setBuying(true);
+    router.push("/checkout");
+  }
+
   return (
-    <div className="grid gap-10 lg:grid-cols-[minmax(0,32rem)_1fr] lg:items-start lg:gap-16">
+    <div className="grid gap-10 lg:grid-cols-[3fr_2fr] lg:items-start lg:gap-12">
       {/* ── Galería ── */}
-      <ProductGallery
-        images={product.images}
-        productName={product.name}
-        badge={product.badge}
-      />
+      <ProductGallery images={product.images} productName={product.name} />
 
       {/* ── Info y acciones ── */}
       <div className="flex flex-col lg:max-w-xl lg:py-2">
@@ -151,7 +186,7 @@ export function ProductDetail({ product }: { product: Product }) {
             </span>
           ) : null}
           {discount > 0 ? (
-            <span className="rounded-full bg-accent/70 px-2 py-0.5 text-xs font-medium text-foreground">
+            <span className="bg-accent/70 px-2 py-0.5 text-xs font-medium text-foreground">
               -{discount}% dto.
             </span>
           ) : null}
@@ -306,9 +341,14 @@ export function ProductDetail({ product }: { product: Product }) {
           </div>
         ) : null}
 
-        {/* Cantidad + agregar */}
-        <div className="mt-8 flex items-stretch gap-3">
-          <div className="flex items-center rounded-full border">
+        {/* Cantidad en su propia línea. Una sola acción dominante ("Comprar
+            ahora", ancho completo — la que pidió tener relevancia), y
+            "Agregar al carrito" como enlace secundario discreto debajo: no
+            compite visualmente, pero sigue siendo un control real (botón,
+            no solo texto decorativo) para quien arma un pedido con varios
+            productos. */}
+        <div ref={ctaRef} className="mt-8 space-y-4">
+          <div className="flex w-fit items-center rounded-full border">
             <button
               type="button"
               onClick={() => setQuantity((q) => Math.max(1, q - 1))}
@@ -335,32 +375,92 @@ export function ProductDetail({ product }: { product: Product }) {
             </button>
           </div>
 
-          <Button
-            type="button"
-            onClick={handleAddToCart}
-            disabled={hardDisabled}
-            className="h-11 flex-1 rounded-full text-sm"
-          >
-            {added ? (
-              <>
-                <Check className="size-4" aria-hidden="true" />
-                Agregado al carrito
-              </>
-            ) : soldOut ? (
-              "Agotado"
-            ) : comboSoldOut ? (
-              "Sin stock en esta combinación"
-            ) : (
-              <>
-                <Plus className="size-4" aria-hidden="true" />
-                Agregar al carrito
-              </>
-            )}
-          </Button>
+          <div className="space-y-2.5">
+            <Button
+              type="button"
+              onClick={handleBuyNow}
+              disabled={hardDisabled || buying}
+              className="h-13 w-full rounded-full text-sm font-semibold"
+            >
+              {buying ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                  Redirigiendo…
+                </>
+              ) : soldOut ? (
+                "Agotado"
+              ) : comboSoldOut ? (
+                "Sin stock en esta combinación"
+              ) : (
+                "Comprar ahora"
+              )}
+            </Button>
+
+            <button
+              type="button"
+              onClick={handleAddToCart}
+              disabled={hardDisabled}
+              className="mx-auto flex w-fit items-center gap-1.5 text-sm font-medium text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline disabled:pointer-events-none disabled:opacity-40"
+            >
+              {added ? (
+                <>
+                  <Check className="size-4" aria-hidden="true" />
+                  Agregado al carrito
+                </>
+              ) : soldOut ? (
+                "Agotado"
+              ) : comboSoldOut ? (
+                "Sin stock"
+              ) : (
+                <>
+                  <Plus className="size-3.5" aria-hidden="true" />
+                  Agregar al carrito
+                </>
+              )}
+            </button>
+          </div>
         </div>
         <p className="sr-only" role="status" aria-live="polite">
           {added ? "Producto agregado al carrito" : ""}
         </p>
+
+        {/* Barra fija de compra en mobile: reemplaza al CTA inline cuando se
+            pierde de vista, así la ficha larga (fotos + descripción) nunca
+            deja al comprador sin el botón a mano (docs/09 §4). */}
+        {!ctaVisible ? (
+          <div className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-4px_16px_rgba(0,0,0,0.06)] backdrop-blur-sm lg:hidden">
+            <div className="mx-auto flex max-w-7xl items-center gap-3">
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium">{product.name}</p>
+                <p className="text-sm font-semibold tabular-nums">
+                  {formatPrice(currentPriceCents)}
+                </p>
+              </div>
+              <Button
+                type="button"
+                onClick={handleAddToCart}
+                disabled={hardDisabled}
+                className="h-11 shrink-0 rounded-full px-6 text-sm"
+              >
+                {added ? (
+                  <>
+                    <Check className="size-4" aria-hidden="true" />
+                    Agregado
+                  </>
+                ) : soldOut ? (
+                  "Agotado"
+                ) : comboSoldOut ? (
+                  "Sin stock"
+                ) : (
+                  <>
+                    <Plus className="size-4" aria-hidden="true" />
+                    Agregar
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        ) : null}
 
         {/* Detalle (acordeón) */}
         <div className="mt-8 divide-y border-y">
@@ -391,7 +491,8 @@ export function ProductDetail({ product }: { product: Product }) {
   );
 }
 
-/** Sección colapsable accesible basada en <details> (sin JS). */
+/** Sección colapsable con animación de altura (mismo truco grid-rows 1fr/0fr
+ *  que el panel de filtros de /tienda, para una sola convención de motion). */
 function AccordionItem({
   title,
   children,
@@ -401,18 +502,37 @@ function AccordionItem({
   children: React.ReactNode;
   defaultOpen?: boolean;
 }) {
+  const [open, setOpen] = useState(defaultOpen);
+
   return (
-    <details className="group" open={defaultOpen}>
-      <summary className="flex cursor-pointer list-none items-center justify-between py-4 text-sm font-medium [&::-webkit-details-marker]:hidden">
+    <div>
+      <button
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        aria-expanded={open}
+        className="group flex w-full items-center justify-between py-4 text-left text-sm font-medium"
+      >
         {title}
         <ChevronDown
-          className="size-4 text-muted-foreground transition-transform duration-300 ease-out group-open:rotate-180"
+          className={cn(
+            "size-4 text-muted-foreground transition-transform duration-300 ease-out group-hover:text-foreground",
+            open ? "rotate-180" : "rotate-0",
+          )}
           aria-hidden="true"
         />
-      </summary>
-      <div className="pb-4 text-sm leading-relaxed text-muted-foreground">
-        {children}
+      </button>
+      <div
+        className={cn(
+          "grid transition-all duration-300 ease-out",
+          open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+        )}
+      >
+        <div className="overflow-hidden">
+          <p className="pb-4 text-sm leading-relaxed text-muted-foreground">
+            {children}
+          </p>
+        </div>
       </div>
-    </details>
+    </div>
   );
 }

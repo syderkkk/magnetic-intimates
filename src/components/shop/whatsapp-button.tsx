@@ -2,11 +2,16 @@ import Link from "next/link";
 
 import { getWhatsAppUrl } from "@/lib/whatsapp";
 
-/** Glifo de WhatsApp (lucide no incluye íconos de marca). */
+/** Glifo oficial de WhatsApp (trazo de simple-icons; lucide no trae íconos de marca). */
 function WhatsAppIcon({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
-      <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.33 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.78 1.22h.01c5.46 0 9.9-4.45 9.9-9.91C21.95 6.45 17.5 2 12.04 2Zm5.8 14.02c-.24.68-1.4 1.32-1.93 1.4-.5.08-1.11.11-1.79-.11a15.9 15.9 0 0 1-1.6-.6c-2.82-1.22-4.66-4.06-4.8-4.25-.14-.19-1.15-1.53-1.15-2.92 0-1.39.73-2.07.99-2.35.26-.29.57-.36.76-.36h.55c.18 0 .42-.07.65.5.25.58.83 2 .9 2.15.07.14.12.31.02.5-.1.19-.15.31-.29.48-.14.17-.3.38-.43.51-.14.14-.29.29-.13.57.17.29.75 1.24 1.61 2.01 1.11.99 2.04 1.3 2.33 1.44.29.14.46.12.63-.07.17-.19.72-.84.92-1.13.19-.29.38-.24.63-.14.26.1 1.63.77 1.91.91.29.14.48.22.55.34.07.12.07.68-.17 1.36Z" />
+    <svg
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413" />
     </svg>
   );
 }
@@ -15,6 +20,10 @@ function WhatsAppIcon({ className }: { className?: string }) {
  * Botón flotante de WhatsApp, visible en todo el sitio (tabla de páginas
  * pendientes del cliente). No se renderiza si aún no hay número configurado
  * (`lib/whatsapp.ts`) — mejor no mostrar nada que mostrar un botón muerto.
+ *
+ * Círculo simple con el ícono, sin texto (el formato que la gente reconoce de
+ * inmediato). Nude + tinta negra en vez del verde/negro genérico — mismo
+ * acento que badges y otros detalles de marca, no otro bloque negro más.
  */
 export function WhatsAppButton() {
   const href = getWhatsAppUrl(
@@ -28,7 +37,7 @@ export function WhatsAppButton() {
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Escríbenos por WhatsApp"
-      className="fixed right-5 bottom-5 z-30 flex size-14 items-center justify-center rounded-full bg-foreground text-background shadow-lg transition-transform duration-200 ease-out hover:scale-105 active:scale-95"
+      className="bg-accent text-foreground fixed right-5 bottom-5 z-30 flex size-14 items-center justify-center rounded-full shadow-[0_8px_24px_rgba(14,14,13,0.18)] transition-transform duration-200 ease-out hover:scale-105 active:scale-95"
     >
       <WhatsAppIcon className="size-6" />
     </Link>

@@ -80,10 +80,10 @@ export default async function HomePage() {
         <div className="absolute inset-0 flex items-center">
           <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="max-w-xl text-white">
-              <span className="inline-flex rounded-full bg-accent px-3 py-1 text-[11px] font-medium tracking-[0.2em] text-foreground uppercase">
+              <span className="bg-accent text-foreground inline-flex px-3 py-1 text-[11px] font-medium tracking-[0.2em] uppercase">
                 Nueva colección
               </span>
-              <h1 className="mt-5 font-display text-4xl leading-[1.05] font-semibold tracking-tight text-balance sm:text-5xl lg:text-6xl">
+              <h1 className="font-display mt-5 text-4xl leading-[1.05] font-semibold tracking-tight text-balance sm:text-5xl lg:text-6xl">
                 {heroTitle}
               </h1>
               <p className="mt-5 max-w-md text-base text-white/80 sm:text-lg">
@@ -97,14 +97,14 @@ export default async function HomePage() {
                 >
                   <Link href="/tienda">
                     Ver la colección
-                    <span className="flex size-8 items-center justify-center rounded-full bg-background/20 transition-transform duration-300 ease-out group-hover/button:translate-x-0.5">
+                    <span className="bg-background/20 flex size-8 items-center justify-center rounded-full transition-transform duration-300 ease-out group-hover/button:translate-x-0.5">
                       <ArrowRight className="size-4" />
                     </span>
                   </Link>
                 </Button>
                 <Link
                   href="/tienda?cat=conjuntos"
-                  className="text-sm text-white/75 underline-offset-4 hover:text-white hover:underline transition-colors"
+                  className="text-sm text-white/75 underline-offset-4 transition-colors hover:text-white hover:underline"
                 >
                   Ver conjuntos →
                 </Link>
@@ -128,10 +128,10 @@ export default async function HomePage() {
           <Reveal>
             <div className="flex items-end justify-between gap-4">
               <div>
-                <span className="text-[11px] font-medium tracking-[0.2em] text-muted-foreground uppercase">
+                <span className="text-muted-foreground text-[11px] font-medium tracking-[0.2em] uppercase">
                   Selección
                 </span>
-                <h2 className="mt-2 font-display text-3xl font-semibold tracking-tight sm:text-4xl">
+                <h2 className="font-display mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
                   Destacados
                 </h2>
               </div>
@@ -159,10 +159,10 @@ export default async function HomePage() {
             <Reveal>
               <div className="flex items-end justify-between gap-4">
                 <div>
-                  <span className="text-[11px] font-medium tracking-[0.2em] text-muted-foreground uppercase">
+                  <span className="text-muted-foreground text-[11px] font-medium tracking-[0.2em] uppercase">
                     Recién llegado
                   </span>
-                  <h2 className="mt-2 font-display text-3xl font-semibold tracking-tight sm:text-4xl">
+                  <h2 className="font-display mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
                     Novedades
                   </h2>
                 </div>
@@ -182,19 +182,21 @@ export default async function HomePage() {
       ) : null}
 
       {/* ── Propuestas de valor ── */}
-      {/* Franja con baño nude sutil: separa esta sección de "servicio" del resto
-          (blanco/sand) sin competir con las fotos de producto (docs/06 §5.5). */}
-      <section className="border-t bg-accent/20">
+      {/* Franja con baño nude sutil: separa esta sección de "servicio" del
+          resto sin competir con las fotos de producto (docs/06 §5.5). */}
+      <section className="bg-accent/20 border-t">
         <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-3 lg:px-8">
           {VALUE_PROPS.map(({ icon: Icon, title, description }, i) => (
             <Reveal key={title} delayMs={i * 100}>
               <div className="flex items-start gap-4">
-                <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-background">
+                <span className="bg-background flex size-11 shrink-0 items-center justify-center rounded-full">
                   <Icon className="size-5" aria-hidden="true" />
                 </span>
                 <div>
                   <h3 className="text-sm font-medium">{title}</h3>
-                  <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+                  <p className="text-muted-foreground mt-1 text-sm">
+                    {description}
+                  </p>
                 </div>
               </div>
             </Reveal>

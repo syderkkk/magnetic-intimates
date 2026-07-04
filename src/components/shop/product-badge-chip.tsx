@@ -16,7 +16,7 @@ export function ProductBadgeChip({ badge, className }: ProductBadgeChipProps) {
   return (
     <span
       className={cn(
-        "rounded-full bg-accent px-2.5 py-1 text-[10px] font-medium tracking-wider text-foreground uppercase",
+        "bg-accent px-2.5 py-1 text-[10px] font-medium tracking-wider text-foreground uppercase",
         className,
       )}
     >
