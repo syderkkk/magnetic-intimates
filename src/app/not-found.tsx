@@ -1,11 +1,18 @@
 import Link from "next/link";
 
+import { BrandMotif } from "@/components/shop/brand-motif";
 import { Logo } from "@/components/shop/logo";
 
 /** Página 404 personalizada con identidad de marca. */
 export default function NotFound() {
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center gap-8 px-4 text-center">
+    <div className="relative flex min-h-svh flex-col items-center justify-center gap-8 overflow-hidden px-4 text-center">
+      {/* Trazo de marca (docs/06 §5.5) — mismo tratamiento sutil que el resto
+          del sitio; evita que la 404 sea el único rincón sin identidad. */}
+      <BrandMotif
+        variant="trazo"
+        className="text-foreground/6 pointer-events-none absolute -bottom-10 -left-10 h-64 w-auto sm:h-80"
+      />
       <Link
         href="/"
         aria-label="MAGNÉTIC — Inicio"

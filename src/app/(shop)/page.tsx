@@ -9,6 +9,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
+import { BrandMotif } from "@/components/shop/brand-motif";
 import { CategorySection } from "@/components/shop/category-section";
 import { ProductGrid } from "@/components/shop/product-grid";
 import { Reveal } from "@/components/shop/reveal";
@@ -61,7 +62,7 @@ export default async function HomePage() {
   return (
     <>
       {/* ── Hero ── */}
-      <section className="relative h-[85svh] min-h-140 w-full overflow-hidden bg-neutral-950">
+      <section className="relative h-[85svh] min-h-140 w-full overflow-hidden bg-foreground">
         {heroImage ? (
           <Image
             src={heroImage}
@@ -73,7 +74,8 @@ export default async function HomePage() {
             className="object-cover"
           />
         ) : (
-          <div className="absolute inset-0 bg-linear-to-br from-neutral-800 via-neutral-950 to-black" />
+          // Respaldo sin foto: negro/taupe de marca, no gris genérico de Tailwind.
+          <div className="from-foreground via-foreground to-ring/40 absolute inset-0 bg-linear-to-br" />
         )}
         <div className="absolute inset-0 bg-linear-to-t from-black/65 via-black/25 to-black/30" />
 
@@ -89,7 +91,11 @@ export default async function HomePage() {
               <p className="mt-5 max-w-md text-base text-white/80 sm:text-lg">
                 {heroSubtitle}
               </p>
-              <div className="mt-8 flex flex-wrap items-center gap-4">
+              {/* Una sola acción en el hero (docs/09 §10, ley de Hick): antes
+                  había un segundo link "Ver conjuntos" al lado que llevaba a
+                  una versión filtrada de lo mismo — dos invitaciones a "mirar
+                  productos" compitiendo sin necesidad. */}
+              <div className="mt-8 flex items-center">
                 <Button
                   asChild
                   size="lg"
@@ -102,12 +108,6 @@ export default async function HomePage() {
                     </span>
                   </Link>
                 </Button>
-                <Link
-                  href="/tienda?cat=conjuntos"
-                  className="text-sm text-white/75 underline-offset-4 transition-colors hover:text-white hover:underline"
-                >
-                  Ver conjuntos →
-                </Link>
               </div>
             </div>
           </div>
@@ -183,9 +183,16 @@ export default async function HomePage() {
 
       {/* ── Propuestas de valor ── */}
       {/* Franja con baño nude sutil: separa esta sección de "servicio" del
-          resto sin competir con las fotos de producto (docs/06 §5.5). */}
-      <section className="bg-accent/20 border-t">
-        <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-3 lg:px-8">
+          resto sin competir con las fotos de producto (docs/06 §5.5). El
+          trazo de marca de fondo (docs/06 §5.5, sugerido y nunca implementado
+          hasta tener el SVG real) es solo textura al 6% — los íconos
+          funcionales (camión, escudo…) siguen siendo la señal principal. */}
+      <section className="relative overflow-hidden border-t bg-accent/20">
+        <BrandMotif
+          variant="moño"
+          className="pointer-events-none absolute top-1/2 right-0 h-[140%] w-auto -translate-y-1/2 translate-x-1/4 text-foreground/6"
+        />
+        <div className="relative mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-3 lg:px-8">
           {VALUE_PROPS.map(({ icon: Icon, title, description }, i) => (
             <Reveal key={title} delayMs={i * 100}>
               <div className="flex items-start gap-4">

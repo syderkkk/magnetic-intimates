@@ -419,6 +419,21 @@ export function ProductDetail({ product }: { product: Product }) {
               )}
             </button>
           </div>
+
+          {/* Confianza cerca del CTA (docs/09 §4): antes vivía después del
+              acordeón, es decir, después de que ya se decidió comprar o no.
+              El detalle completo sigue en el acordeón "Envíos y devoluciones"
+              — esto es solo la señal rápida en el momento de la duda. */}
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1.5">
+              <Truck className="size-3.5 shrink-0" aria-hidden="true" />
+              Envíos a todo el Perú
+            </span>
+            <span className="flex items-center gap-1.5">
+              <RefreshCw className="size-3.5 shrink-0" aria-hidden="true" />
+              Cambios fáciles
+            </span>
+          </div>
         </div>
         <p className="sr-only" role="status" aria-live="polite">
           {added ? "Producto agregado al carrito" : ""}
@@ -426,7 +441,10 @@ export function ProductDetail({ product }: { product: Product }) {
 
         {/* Barra fija de compra en mobile: reemplaza al CTA inline cuando se
             pierde de vista, así la ficha larga (fotos + descripción) nunca
-            deja al comprador sin el botón a mano (docs/09 §4). */}
+            deja al comprador sin el botón a mano (docs/09 §4). Prioriza
+            "Comprar ahora" igual que el CTA en línea — antes mostraba solo
+            "Agregar", una jerarquía distinta a la de arriba para el mismo
+            producto. */}
         {!ctaVisible ? (
           <div className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-4px_16px_rgba(0,0,0,0.06)] backdrop-blur-sm lg:hidden">
             <div className="mx-auto flex max-w-7xl items-center gap-3">
@@ -438,24 +456,21 @@ export function ProductDetail({ product }: { product: Product }) {
               </div>
               <Button
                 type="button"
-                onClick={handleAddToCart}
-                disabled={hardDisabled}
+                onClick={handleBuyNow}
+                disabled={hardDisabled || buying}
                 className="h-11 shrink-0 rounded-full px-6 text-sm"
               >
-                {added ? (
+                {buying ? (
                   <>
-                    <Check className="size-4" aria-hidden="true" />
-                    Agregado
+                    <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                    Redirigiendo…
                   </>
                 ) : soldOut ? (
                   "Agotado"
                 ) : comboSoldOut ? (
                   "Sin stock"
                 ) : (
-                  <>
-                    <Plus className="size-4" aria-hidden="true" />
-                    Agregar
-                  </>
+                  "Comprar ahora"
                 )}
               </Button>
             </div>
@@ -473,18 +488,6 @@ export function ProductDetail({ product }: { product: Product }) {
             {product.composition ?? DEFAULT_CARE}
           </AccordionItem>
           <AccordionItem title="Envíos y devoluciones">{SHIPPING_INFO}</AccordionItem>
-        </div>
-
-        {/* Propuestas de valor */}
-        <div className="mt-6 space-y-3.5 text-sm text-muted-foreground">
-          <div className="flex items-center gap-3">
-            <Truck className="size-4 shrink-0" aria-hidden="true" />
-            <span>Envíos a todo el Perú</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <RefreshCw className="size-4 shrink-0" aria-hidden="true" />
-            <span>Cambios fáciles si la talla no es la indicada</span>
-          </div>
         </div>
       </div>
     </div>

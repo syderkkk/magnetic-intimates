@@ -2,6 +2,7 @@ import { CheckCircle2, Clock, PackageX, ShoppingBag, Truck } from "lucide-react"
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { BrandMotif } from "@/components/shop/brand-motif";
 import { OrderPendingRefresh } from "@/components/shop/order-pending-refresh";
 import { Button } from "@/components/ui/button";
 import { db } from "@/lib/db";
@@ -111,14 +112,26 @@ export default async function OrderConfirmationPage({
           : CheckCircle2;
 
   return (
-    <section className="mx-auto max-w-2xl px-4 py-14 sm:px-6 sm:py-20">
+    <section className="relative mx-auto max-w-2xl overflow-hidden px-4 py-14 sm:px-6 sm:py-20">
       {order.status === "pendiente" ? <OrderPendingRefresh /> : null}
 
-      <div className="flex flex-col items-center text-center">
+      {/* Trazo de marca (docs/06 §5.5) solo en el momento de éxito — es LA
+          página que más se recuerda de la tienda (docs/09, ley peak-end), y
+          hoy no tenía ningún acento de identidad más allá del check genérico.
+          No aparece en pendiente/cancelado/reembolsado: la animación/textura
+          debe estar motivada, no decorar un estado neutro o negativo. */}
+      {status.tone === "success" ? (
+        <BrandMotif
+          variant="rombo"
+          className="text-foreground/6 pointer-events-none absolute -top-6 -right-10 h-56 w-auto sm:h-72"
+        />
+      ) : null}
+
+      <div className="relative flex flex-col items-center text-center">
         <span
           className={
             status.tone === "success"
-              ? "flex size-16 items-center justify-center rounded-full bg-foreground text-background"
+              ? "flex size-16 items-center justify-center rounded-full bg-foreground text-background motion-safe:animate-in motion-safe:zoom-in-90 motion-safe:duration-500"
               : status.tone === "pending"
                 ? "flex size-16 items-center justify-center rounded-full bg-muted text-foreground"
                 : "flex size-16 items-center justify-center rounded-full bg-muted text-muted-foreground"

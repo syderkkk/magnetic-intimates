@@ -10,7 +10,11 @@ import { FormField } from "@/components/shop/form-field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { complaintSchema, type ComplaintValues } from "@/schemas/complaint";
+import {
+  complaintSchema,
+  DOCUMENT_TYPE_OPTIONS,
+  type ComplaintValues,
+} from "@/schemas/complaint";
 
 const TYPE_OPTIONS = [
   { value: "reclamo", label: "Reclamo", hint: "Disconformidad con el producto o servicio." },
@@ -33,7 +37,7 @@ export function ComplaintForm() {
   } = useForm<ComplaintValues>({
     resolver: zodResolver(complaintSchema),
     mode: "onTouched",
-    defaultValues: { type: "reclamo" },
+    defaultValues: { type: "reclamo", documentType: "dni" },
   });
 
   async function onSubmit(values: ComplaintValues) {
@@ -146,19 +150,38 @@ export function ComplaintForm() {
         </FormField>
       </div>
 
-      <FormField
-        label="DNI / documento (opcional)"
-        htmlFor="documentId"
-        error={errors.documentId?.message}
-      >
-        <Input
-          id="documentId"
-          autoComplete="off"
-          aria-invalid={!!errors.documentId}
-          className="h-11"
-          {...register("documentId")}
-        />
-      </FormField>
+      <div className="grid gap-5 sm:grid-cols-[auto_1fr]">
+        <FormField
+          label="Tipo de documento"
+          htmlFor="documentType"
+          error={errors.documentType?.message}
+        >
+          <select
+            id="documentType"
+            className="h-11 cursor-pointer rounded-lg border border-input bg-background px-3 text-sm transition-colors hover:border-foreground focus:ring-2 focus:ring-ring focus:outline-none sm:w-44"
+            {...register("documentType")}
+          >
+            {DOCUMENT_TYPE_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </FormField>
+        <FormField
+          label="Número de documento (opcional)"
+          htmlFor="documentId"
+          error={errors.documentId?.message}
+        >
+          <Input
+            id="documentId"
+            autoComplete="off"
+            aria-invalid={!!errors.documentId}
+            className="h-11"
+            {...register("documentId")}
+          />
+        </FormField>
+      </div>
 
       <FormField
         label="Detalle del reclamo o queja"

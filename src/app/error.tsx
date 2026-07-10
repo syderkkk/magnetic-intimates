@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect } from "react";
 
+import { BrandMotif } from "@/components/shop/brand-motif";
 import { Logo } from "@/components/shop/logo";
 import { Button } from "@/components/ui/button";
 
@@ -23,7 +24,13 @@ export default function Error({
   }, [error]);
 
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center gap-8 px-4 text-center">
+    <div className="relative flex min-h-svh flex-col items-center justify-center gap-8 overflow-hidden px-4 text-center">
+      {/* Mismo trazo de marca que la 404 (docs/06 §5.5) — consistencia entre
+          los dos estados de error del sitio. */}
+      <BrandMotif
+        variant="trazo"
+        className="text-foreground/6 pointer-events-none absolute -bottom-10 -left-10 h-64 w-auto sm:h-80"
+      />
       <Link
         href="/"
         aria-label="MAGNÉTIC — Inicio"

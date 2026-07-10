@@ -2,6 +2,7 @@ import { Heart, Ribbon, Sparkles } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { BrandMotif } from "@/components/shop/brand-motif";
 import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
@@ -40,8 +41,14 @@ const VALUES = [
  */
 export default function AboutPage() {
   return (
-    <section>
-      <div className="mx-auto max-w-4xl px-4 py-14 sm:px-6 lg:px-8 lg:py-20">
+    <section className="relative overflow-hidden">
+      {/* Trazo de marca de fondo (docs/06 §5.5) — textura al 6%, la misma
+          curva "femenina" del manual, coherente con el trazo del Inicio. */}
+      <BrandMotif
+        variant="curva"
+        className="text-foreground/6 pointer-events-none absolute -top-10 -right-10 h-64 w-auto sm:h-80"
+      />
+      <div className="relative mx-auto max-w-4xl px-4 py-14 sm:px-6 lg:px-8 lg:py-20">
         <span className="text-muted-foreground text-xs font-medium tracking-[0.2em] uppercase">
           Nosotros
         </span>

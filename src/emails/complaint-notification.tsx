@@ -2,12 +2,19 @@ import { Section, Text } from "@react-email/components";
 
 import { EmailLayout } from "./email-layout";
 
+const DOCUMENT_TYPE_LABELS: Record<string, string> = {
+  dni: "DNI",
+  ce: "Carné de Extranjería",
+  pasaporte: "Pasaporte",
+};
+
 interface ComplaintNotificationEmailProps {
   code: string;
   type: "reclamo" | "queja";
   customerName: string;
   email: string;
   phone?: string;
+  documentType?: string;
   documentId?: string;
   detail: string;
 }
@@ -23,6 +30,7 @@ export function ComplaintNotificationEmail({
   customerName,
   email,
   phone,
+  documentType,
   documentId,
   detail,
 }: ComplaintNotificationEmailProps) {
@@ -44,7 +52,8 @@ export function ComplaintNotificationEmail({
       ) : null}
       {documentId ? (
         <Text style={{ margin: "0 0 6px" }}>
-          <strong>Documento:</strong> {documentId}
+          <strong>Documento:</strong>{" "}
+          {documentType ? DOCUMENT_TYPE_LABELS[documentType] ?? documentType : null} {documentId}
         </Text>
       ) : null}
       <Section style={{ backgroundColor: "#f7f4ef", borderRadius: 8, padding: "12px 16px", marginTop: 12 }}>

@@ -398,7 +398,8 @@ model Complaint {
   customerName String   @map("customer_name")
   email        String
   phone        String?
-  documentId   String?  @map("document_id") // DNI
+  documentType String?  @map("document_type") // dni | ce | pasaporte
+  documentId   String?  @map("document_id")
   detail       String
   status       String   @default("pendiente")
   response     String?

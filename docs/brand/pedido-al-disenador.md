@@ -2,12 +2,12 @@
 
 Mensaje enviado/por enviar al diseñador. Estado de lo recibido se marca aquí.
 
-- [ ] Monograma M en SVG
-- [ ] Logotipo (wordmark + tagline) en SVG
-- [ ] (Solo si no hay SVG) PNG transparentes de ambos
-- [ ] Confirmación de licencia webfont de Mazzard M
-- [ ] Elementos gráficos lineales en SVG (opcional)
-- [ ] Patrón tissue repetible (opcional)
+- [x] Monograma M en SVG — `docs/brand/monograma.svg` (2026-07-07)
+- [x] Logotipo (wordmark + tagline) en SVG, textos a curvas — `docs/brand/logo-completo.svg`; además llegó el bonus solo-wordmark sin tagline en `logo-wordmark.svg`
+- [ ] (Solo si no hay SVG) PNG transparentes de ambos — no hizo falta, llegó el SVG
+- [ ] Confirmación de licencia webfont de Mazzard M — sigue pendiente
+- [x] Elementos gráficos lineales en SVG (opcional) — `docs/brand/elementos-graficos.svg` (8 trazos); revisar con el diseñador: una figura tiene relleno taupe fijo y parece duplicada dentro del mismo archivo
+- [ ] Patrón tissue repetible (opcional) — no llegó
 
 ---
 
