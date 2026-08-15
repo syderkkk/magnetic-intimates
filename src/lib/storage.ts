@@ -2,6 +2,8 @@ import "server-only";
 
 import { createClient } from "@supabase/supabase-js";
 
+import { env } from "@/lib/env";
+
 /**
  * ─────────────────────────────────────────────────────────────────────────
  *  ALMACENAMIENTO DE ARCHIVOS — Supabase Storage (adaptador intercambiable)
@@ -13,7 +15,7 @@ import { createClient } from "@supabase/supabase-js";
  * ─────────────────────────────────────────────────────────────────────────
  */
 
-const BUCKET = process.env.SUPABASE_STORAGE_BUCKET ?? "uploads";
+const BUCKET = env.SUPABASE_STORAGE_BUCKET;
 const PUBLIC_MARKER = `/storage/v1/object/public/${BUCKET}/`;
 
 export interface StoredFile {
@@ -23,14 +25,9 @@ export interface StoredFile {
 
 /** Cliente de Supabase con la service role key (solo servidor, nunca al cliente). */
 function storageClient() {
-  const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) {
-    throw new Error(
-      "Falta configurar SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY en el entorno.",
-    );
-  }
-  return createClient(url, key, { auth: { persistSession: false } });
+  return createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
+    auth: { persistSession: false },
+  });
 }
 
 /** Guarda los bytes bajo la clave dada y devuelve su URL pública. */

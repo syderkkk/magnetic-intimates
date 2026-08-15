@@ -2,6 +2,7 @@
 
 import { CircleAlert, LoaderCircle } from "lucide-react";
 import { signIn } from "next-auth/react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -57,9 +58,17 @@ export function LoginForm() {
       </div>
 
       <div className="space-y-1.5">
-        <label htmlFor="password" className="block text-sm font-medium">
-          Contraseña
-        </label>
+        <div className="flex items-center justify-between">
+          <label htmlFor="password" className="block text-sm font-medium">
+            Contraseña
+          </label>
+          <Link
+            href="/olvide-password"
+            className="text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+          >
+            ¿Olvidaste tu contraseña?
+          </Link>
+        </div>
         <Input
           id="password"
           name="password"

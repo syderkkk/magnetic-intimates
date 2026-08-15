@@ -1,6 +1,11 @@
 "use server";
 
+import { z } from "zod";
+
+import { clientIp, getAdminSession } from "@/lib/admin-auth";
+import { recordAudit } from "@/lib/audit";
 import { ComplaintNotificationEmail } from "@/emails/complaint-notification";
+import { ComplaintResponseEmail } from "@/emails/complaint-response";
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
 import { sendMail } from "@/lib/mail";
@@ -84,4 +89,53 @@ export async function createComplaint(
   }
 
   return { success: true, data: { code } };
+}
+
+const respondComplaintSchema = z.object({
+  complaintId: z.string().min(1),
+  response: z.string().trim().min(1, "Escribe una respuesta"),
+});
+
+/**
+ * Registra la respuesta del negocio a un reclamo/queja y lo marca resuelto
+ * (CLAUDE.md §8 regla 9: debe poder responderse dentro de 30 días). Avisa al
+ * cliente por correo con el texto de la respuesta.
+ */
+export async function respondToComplaint(input: unknown): Promise<ActionResult> {
+  const session = await getAdminSession();
+  if (!session) return { success: false, error: "No autorizado." };
+
+  const parsed = respondComplaintSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      success: false,
+      error: parsed.error.issues[0]?.message ?? "Datos inválidos.",
+    };
+  }
+
+  const complaint = await db.complaint.update({
+    where: { id: parsed.data.complaintId },
+    data: { response: parsed.data.response, status: "resuelto" },
+  });
+
+  await recordAudit({
+    userId: session.user.id,
+    action: "updated",
+    entityType: "complaint",
+    entityId: complaint.id,
+    changes: { status: "resuelto" },
+    ipAddress: await clientIp(),
+  });
+
+  await sendMail({
+    to: complaint.email,
+    subject: `Respuesta a tu reclamo #${complaint.code}`,
+    react: ComplaintResponseEmail({
+      code: complaint.code,
+      customerName: complaint.customerName,
+      response: parsed.data.response,
+    }),
+  });
+
+  return { success: true };
 }

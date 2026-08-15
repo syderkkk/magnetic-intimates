@@ -1,31 +1,17 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { headers } from "next/headers";
 import { z } from "zod";
 
+import { clientIp, getAdminSession } from "@/lib/admin-auth";
 import { recordAudit } from "@/lib/audit";
-import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { ImageValidationError } from "@/lib/images";
 import { deleteFileByUrl } from "@/lib/storage";
 import { saveUploadedImage } from "@/lib/upload";
 import type { ActionResult } from "@/types/action";
 
-const ADMIN_ROLES = ["admin", "editor"];
 const MAX_IMAGES_PER_PRODUCT = 6;
-
-/** Devuelve la sesión si el usuario tiene permiso de administración, o null. */
-async function getAdminSession() {
-  const session = await auth();
-  if (!session?.user || !ADMIN_ROLES.includes(session.user.role)) return null;
-  return session;
-}
-
-/** IP del cliente para la auditoría. */
-async function clientIp(): Promise<string | null> {
-  return (await headers()).get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
-}
 
 /** Revalida las vistas que muestran imágenes de un producto. */
 function revalidateProduct(slug: string, id: string) {

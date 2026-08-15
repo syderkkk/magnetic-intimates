@@ -18,30 +18,42 @@ const credentialsSchema = z.object({
 });
 
 // ── Rate limiting de login (CLAUDE.md §7.6: bloqueo tras 5 intentos) ──
-// Simple, en memoria del proceso. TODO: mover a almacenamiento compartido
-// (Redis) si hay múltiples instancias (CLAUDE.md §11).
+// Persistido en `login_attempts` (BD), no en memoria del proceso: en Vercel
+// serverless cada invocación puede caer en una instancia distinta, así que un
+// contador en memoria no bloquea de forma confiable. La tabla ya está en la
+// misma Postgres que todo lo demás — sin infraestructura nueva.
 const MAX_ATTEMPTS = 5;
 const WINDOW_MS = 15 * 60 * 1000; // 15 minutos
-const attempts = new Map<string, { count: number; resetAt: number }>();
 
-function isBlocked(key: string): boolean {
-  const entry = attempts.get(key);
+async function isBlocked(email: string): Promise<boolean> {
+  const entry = await db.loginAttempt.findUnique({ where: { email } });
   if (!entry) return false;
-  if (Date.now() > entry.resetAt) {
-    attempts.delete(key);
+  if (new Date() > entry.resetAt) {
+    await db.loginAttempt.delete({ where: { email } }).catch(() => {});
     return false;
   }
   return entry.count >= MAX_ATTEMPTS;
 }
 
-function recordFailure(key: string): void {
-  const now = Date.now();
-  const entry = attempts.get(key);
-  if (!entry || now > entry.resetAt) {
-    attempts.set(key, { count: 1, resetAt: now + WINDOW_MS });
+async function recordFailure(email: string): Promise<void> {
+  const now = new Date();
+  const existing = await db.loginAttempt.findUnique({ where: { email } });
+  if (!existing || now > existing.resetAt) {
+    await db.loginAttempt.upsert({
+      where: { email },
+      create: { email, count: 1, resetAt: new Date(now.getTime() + WINDOW_MS) },
+      update: { count: 1, resetAt: new Date(now.getTime() + WINDOW_MS) },
+    });
   } else {
-    entry.count += 1;
+    await db.loginAttempt.update({
+      where: { email },
+      data: { count: { increment: 1 } },
+    });
   }
+}
+
+async function clearFailures(email: string): Promise<void> {
+  await db.loginAttempt.delete({ where: { email } }).catch(() => {});
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
@@ -56,25 +68,25 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         const email = parsed.data.email.toLowerCase();
 
-        // Bloqueo por demasiados intentos: rechaza sin tocar la BD.
-        if (isBlocked(email)) return null;
+        // Bloqueo por demasiados intentos.
+        if (await isBlocked(email)) return null;
 
         const user = await db.user.findUnique({
           where: { email },
           include: { role: true },
         });
         if (!user?.passwordHash || !user.isActive) {
-          recordFailure(email);
+          await recordFailure(email);
           return null;
         }
 
         const valid = await verify(user.passwordHash, parsed.data.password);
         if (!valid) {
-          recordFailure(email);
+          await recordFailure(email);
           return null;
         }
 
-        attempts.delete(email);
+        await clearFailures(email);
         return {
           id: user.id,
           email: user.email,

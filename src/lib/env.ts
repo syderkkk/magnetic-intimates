@@ -13,6 +13,14 @@ const envSchema = z.object({
   // Protege /api/cron/cleanup (docs/08 paso 7): sin esta clave, el endpoint
   // rechaza toda petición en vez de arrancar sin protección.
   CRON_SECRET: z.string().min(1, "Falta CRON_SECRET en el entorno"),
+  // Storage de imágenes (`lib/storage.ts`): sin estas claves, subir una
+  // imagen desde el admin explota recién al primer intento. Validarlas aquí
+  // falla rápido al arrancar en vez de esperar a ese momento (CLAUDE.md §11.11).
+  SUPABASE_URL: z.string().min(1, "Falta SUPABASE_URL en el entorno"),
+  SUPABASE_SERVICE_ROLE_KEY: z
+    .string()
+    .min(1, "Falta SUPABASE_SERVICE_ROLE_KEY en el entorno"),
+  SUPABASE_STORAGE_BUCKET: z.string().min(1).default("uploads"),
   // Opcionales a propósito: sin cliente de Resend/correo definitivo todavía
   // (TODO: confirmar con cliente). `lib/mail.ts` degrada solo a "no enviar +
   // log" si faltan, en vez de romper el arranque de toda la app.
@@ -27,6 +35,9 @@ export const env = envSchema.parse({
   DATABASE_URL: process.env.DATABASE_URL,
   AUTH_SECRET: process.env.AUTH_SECRET,
   CRON_SECRET: process.env.CRON_SECRET,
+  SUPABASE_URL: process.env.SUPABASE_URL,
+  SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+  SUPABASE_STORAGE_BUCKET: process.env.SUPABASE_STORAGE_BUCKET,
   RESEND_API_KEY: process.env.RESEND_API_KEY,
   EMAIL_FROM: process.env.EMAIL_FROM,
   ADMIN_NOTIFICATION_EMAIL: process.env.ADMIN_NOTIFICATION_EMAIL,

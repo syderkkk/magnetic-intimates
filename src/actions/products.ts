@@ -1,17 +1,14 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
+import { clientIp, getAdminSession } from "@/lib/admin-auth";
 import { recordAudit } from "@/lib/audit";
-import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { solesToCents } from "@/lib/money";
 import type { ActionResult } from "@/types/action";
-
-const ADMIN_ROLES = ["admin", "editor"];
 
 const createProductSchema = z.object({
   name: z.string().trim().min(1, "El nombre es obligatorio"),
@@ -34,10 +31,8 @@ const createProductSchema = z.object({
  * hasta estar listo.
  */
 export async function createProduct(input: unknown): Promise<ActionResult> {
-  const session = await auth();
-  if (!session?.user || !ADMIN_ROLES.includes(session.user.role)) {
-    return { success: false, error: "No autorizado." };
-  }
+  const session = await getAdminSession();
+  if (!session) return { success: false, error: "No autorizado." };
 
   const parsed = createProductSchema.safeParse(input);
   if (!parsed.success) {
@@ -78,8 +73,7 @@ export async function createProduct(input: unknown): Promise<ActionResult> {
     entityType: "product",
     entityId: createdId,
     changes: { name: parsed.data.name, slug: parsed.data.slug },
-    ipAddress:
-      (await headers()).get("x-forwarded-for")?.split(",")[0]?.trim() ?? null,
+    ipAddress: await clientIp(),
   });
   revalidatePath("/admin/productos");
 
@@ -136,10 +130,8 @@ function auditSnapshot(p: {
  * registrar en `audit_logs` → revalidar caché → devolver resultado tipado.
  */
 export async function updateProduct(input: unknown): Promise<ActionResult> {
-  const session = await auth();
-  if (!session?.user || !ADMIN_ROLES.includes(session.user.role)) {
-    return { success: false, error: "No autorizado." };
-  }
+  const session = await getAdminSession();
+  if (!session) return { success: false, error: "No autorizado." };
 
   const parsed = updateProductSchema.safeParse(input);
   if (!parsed.success) {
@@ -172,15 +164,13 @@ export async function updateProduct(input: unknown): Promise<ActionResult> {
     });
 
     // Auditoría de negocio (CLAUDE.md §11.8): quién, qué y cambios (antes/después).
-    const ip =
-      (await headers()).get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
     await recordAudit({
       userId: session.user.id,
       action: "updated",
       entityType: "product",
       entityId: after.id,
       changes: { before: auditSnapshot(before), after: auditSnapshot(after) },
-      ipAddress: ip,
+      ipAddress: await clientIp(),
     });
 
     // Revalida las vistas afectadas (admin + tienda pública).

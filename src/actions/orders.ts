@@ -1,14 +1,17 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 
+import { clientIp, getAdminSession } from "@/lib/admin-auth";
 import { computeOrderSummary } from "@/lib/cart-totals";
 import { db } from "@/lib/db";
 import { createPaymentSession } from "@/lib/izipay";
 import { signOrderAccessToken } from "@/lib/order-access-token";
-import { cancelOrderAndRestock } from "@/lib/orders";
+import { canTransition, manualTransitionsFrom } from "@/lib/order-status";
+import { cancelOrderAndRestock, updateOrderStatus } from "@/lib/orders";
 import { createOrderSchema } from "@/schemas/order";
-import type { Prisma } from "@/generated/prisma/client";
+import type { OrderStatus, Prisma } from "@/generated/prisma/client";
 import type { ActionResult } from "@/types/action";
 
 /** El producto o la variante ya no está disponible (desactivado, etc.). */
@@ -228,4 +231,73 @@ function runCreateOrderTransaction(
       },
     });
   });
+}
+
+const updateOrderStatusSchema = z.object({
+  orderId: z.string().min(1),
+  status: z.enum([
+    "pendiente",
+    "pagado",
+    "enviado",
+    "entregado",
+    "cancelado",
+    "reembolsado",
+  ]),
+  reason: z.string().trim().max(300).optional(),
+});
+
+/**
+ * Cambia el estado de un pedido desde el panel (CLAUDE.md §11.2). Solo admite
+ * las transiciones manuales válidas para el estado actual del pedido — nunca
+ * "pagado" (eso lo marca solo el gateway de pago, nunca un clic del admin).
+ */
+export async function updateOrderStatusAction(
+  input: unknown,
+): Promise<ActionResult> {
+  const session = await getAdminSession();
+  if (!session) return { success: false, error: "No autorizado." };
+
+  const parsed = updateOrderStatusSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      success: false,
+      error: parsed.error.issues[0]?.message ?? "Datos inválidos.",
+    };
+  }
+  const { orderId, status, reason } = parsed.data;
+
+  if (status === "pagado") {
+    return {
+      success: false,
+      error: "El estado \"pagado\" solo lo puede confirmar la pasarela de pago.",
+    };
+  }
+
+  const order = await db.order.findUnique({
+    where: { id: orderId },
+    select: { status: true },
+  });
+  if (!order) return { success: false, error: "Pedido no encontrado." };
+  if (
+    !manualTransitionsFrom(order.status as OrderStatus).includes(status) ||
+    !canTransition(order.status as OrderStatus, status)
+  ) {
+    return {
+      success: false,
+      error: `No se puede pasar de "${order.status}" a "${status}".`,
+    };
+  }
+
+  const result = await updateOrderStatus(orderId, status, {
+    reason,
+    actor: { userId: session.user.id, ipAddress: await clientIp() },
+  });
+
+  if (!result.success) {
+    return { success: false, error: result.error ?? "No se pudo actualizar." };
+  }
+
+  revalidatePath("/admin/pedidos");
+  revalidatePath(`/admin/pedidos/${orderId}`);
+  return { success: true };
 }

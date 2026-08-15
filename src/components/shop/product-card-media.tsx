@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 
+import { cn } from "@/lib/utils";
 import type { ProductImage } from "@/types/product";
 
 interface ProductCardMediaProps {
@@ -22,10 +23,9 @@ interface ProductCardMediaProps {
  */
 export function ProductCardMedia({ images, priority = false }: ProductCardMediaProps) {
   const [index, setIndex] = useState(0);
-  const active = images[index];
   const hasMany = images.length > 1;
 
-  if (!active) return null;
+  if (images.length === 0) return null;
 
   function go(event: React.MouseEvent, delta: number) {
     // Evita que el clic dispare el link de toda la tarjeta (stretched link).
@@ -36,15 +36,26 @@ export function ProductCardMedia({ images, priority = false }: ProductCardMediaP
 
   return (
     <>
-      <Image
-        key={active.url}
-        src={active.url}
-        alt={active.alt}
-        fill
-        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-        priority={priority}
-        className="object-cover transition-transform duration-300 ease-out group-hover/card:scale-[1.04]"
-      />
+      {/* Las N fotos van TODAS montadas desde el inicio (opacidad, no
+          desmontaje) — si solo se montaba la foto activa, la próxima foto
+          recién empezaba a pedirse al navegador al hacer clic en la flecha,
+          y se veía un parpadeo en blanco mientras cargaba. Montadas todas
+          de una, el navegador las precarga apenas la tarjeta entra en
+          pantalla (lazy load normal), y cambiar de foto es instantáneo. */}
+      {images.map((img, i) => (
+        <Image
+          key={img.url}
+          src={img.url}
+          alt={img.alt}
+          fill
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+          priority={priority && i === 0}
+          className={cn(
+            "object-cover transition-[opacity,transform] duration-300 ease-out group-hover/card:scale-[1.04]",
+            i === index ? "opacity-100" : "opacity-0",
+          )}
+        />
+      ))}
 
       {hasMany ? (
         <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-between px-1 opacity-0 transition-opacity duration-200 [@media(hover:hover)]:group-hover/card:opacity-100 [@media(hover:none)]:opacity-100">

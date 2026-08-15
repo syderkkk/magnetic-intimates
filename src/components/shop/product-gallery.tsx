@@ -70,15 +70,25 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
       {/* Móvil/tablet: una imagen activa + miniaturas debajo (carrusel simple). */}
       <div className="flex flex-col gap-4 lg:hidden">
         <div className="relative aspect-4/5 w-full overflow-hidden bg-muted">
-          <Image
-            key={activeImg}
-            src={active.url}
-            alt={active.alt}
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover transition-opacity duration-300"
-          />
+          {/* Todas montadas desde el inicio (opacidad, no desmontaje): si
+              solo se montaba la foto activa, tocar una miniatura nunca antes
+              vista recién disparaba la descarga en ese momento — parpadeo en
+              blanco mientras cargaba. Así el navegador las precarga apenas
+              la galería entra en pantalla y cambiar de foto es instantáneo. */}
+          {images.map((img, i) => (
+            <Image
+              key={img.url}
+              src={img.url}
+              alt={img.alt}
+              fill
+              priority={i === 0}
+              sizes="100vw"
+              className={cn(
+                "object-cover transition-opacity duration-300",
+                i === activeImg ? "opacity-100" : "opacity-0",
+              )}
+            />
+          ))}
 
           <button
             type="button"
@@ -174,30 +184,43 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
         ) : null}
 
         <div className="relative grid flex-1 grid-cols-2 gap-3">
-          {pairIndexes.map((imgIndex, slot) => {
-            const img = images[imgIndex];
-            if (!img) return null;
+          {/* Cada una de las 2 posiciones monta las N fotos del producto
+              completas (opacidad, no desmontaje) — si solo se montaba la
+              foto que le tocaba en ese momento, deslizar el carrusel a una
+              foto nunca antes vista recién disparaba su descarga ahí, con el
+              parpadeo en blanco típico de "cargando". Montadas todas de
+              entrada, el navegador las precarga apenas la galería entra en
+              pantalla y deslizar es instantáneo. */}
+          {[0, 1].map((slot) => {
+            const slotImgIndex = pairIndexes[slot];
+            if (slotImgIndex === undefined) return null;
             return (
               <div
-                key={`${img.url}-${slot}`}
+                key={slot}
                 className="group relative aspect-4/5 overflow-hidden bg-muted"
               >
-                <Image
-                  src={img.url}
-                  alt={img.alt}
-                  fill
-                  priority={slot === 0}
-                  sizes="(min-width: 1024px) 22vw, 50vw"
-                  className="object-cover transition-transform duration-300 ease-out group-hover:scale-105"
-                />
+                {images.map((img, i) => (
+                  <Image
+                    key={img.url}
+                    src={img.url}
+                    alt={img.alt}
+                    fill
+                    priority={slot === 0 && i === 0}
+                    sizes="(min-width: 1024px) 22vw, 50vw"
+                    className={cn(
+                      "object-cover transition-[opacity,transform] duration-300 ease-out group-hover:scale-105",
+                      i === slotImgIndex ? "opacity-100" : "opacity-0",
+                    )}
+                  />
+                ))}
 
                 <button
                   type="button"
                   onClick={() => {
-                    setActiveImg(imgIndex);
+                    setActiveImg(slotImgIndex);
                     setZoomed(true);
                   }}
-                  aria-label={`Ampliar imagen ${imgIndex + 1} de ${images.length}`}
+                  aria-label={`Ampliar imagen ${slotImgIndex + 1} de ${images.length}`}
                   className="absolute inset-0 cursor-zoom-in"
                 >
                   <span className="absolute right-3 bottom-3 flex size-9 items-center justify-center rounded-full bg-background/80 text-foreground opacity-0 shadow-sm backdrop-blur-sm transition-all duration-300 ease-out group-hover:opacity-100">

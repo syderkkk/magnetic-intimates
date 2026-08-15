@@ -1,36 +1,42 @@
 import type { Metadata } from "next";
 import { ShoppingBag } from "lucide-react";
+import Link from "next/link";
 
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { AdminPagination } from "@/components/admin/admin-pagination";
 import { db } from "@/lib/db";
 import { formatDate } from "@/lib/format";
 import { formatPrice } from "@/lib/money";
+import { ORDER_STATUS_META } from "@/lib/order-status";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Pedidos" };
 
-/** Etiqueta y tono visual por estado de pedido (CLAUDE.md §11.2). */
-const STATUS: Record<string, { label: string; className: string }> = {
-  pendiente: { label: "Pendiente", className: "bg-amber-500/15 text-amber-700" },
-  pagado: { label: "Pagado", className: "bg-emerald-500/15 text-emerald-700" },
-  enviado: { label: "Enviado", className: "bg-sky-500/15 text-sky-700" },
-  entregado: { label: "Entregado", className: "bg-emerald-500/15 text-emerald-700" },
-  cancelado: { label: "Cancelado", className: "bg-muted text-muted-foreground" },
-  reembolsado: { label: "Reembolsado", className: "bg-destructive/10 text-destructive" },
-};
+const PAGE_SIZE = 20;
 
-export default async function AdminOrdersPage() {
-  const orders = await db.order.findMany({
-    orderBy: { createdAt: "desc" },
-    take: 50,
-    include: { _count: { select: { items: true } } },
-  });
+interface Props {
+  searchParams: Promise<{ page?: string }>;
+}
+
+export default async function AdminOrdersPage({ searchParams }: Props) {
+  const { page: pageParam } = await searchParams;
+  const page = Math.max(1, Number(pageParam) || 1);
+
+  const [orders, total] = await Promise.all([
+    db.order.findMany({
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
+      include: { _count: { select: { items: true } } },
+    }),
+    db.order.count(),
+  ]);
 
   return (
     <div>
       <AdminPageHeader
         title="Pedidos"
-        description={`${orders.length} ${orders.length === 1 ? "pedido" : "pedidos"}`}
+        description={`${total} ${total === 1 ? "pedido" : "pedidos"}`}
       />
 
       {orders.length === 0 ? (
@@ -61,26 +67,28 @@ export default async function AdminOrdersPage() {
             </thead>
             <tbody className="divide-y">
               {orders.map((order) => {
-                const status = STATUS[order.status] ?? {
-                  label: order.status,
-                  className: "bg-muted text-muted-foreground",
-                };
+                const status = ORDER_STATUS_META[order.status];
                 return (
                   <tr key={order.id} className="transition-colors hover:bg-muted/40">
                     <td className="px-4 py-3">
-                      <span className="font-medium tabular-nums">
+                      <Link
+                        href={`/admin/pedidos/${order.id}`}
+                        className="font-medium tabular-nums hover:underline"
+                      >
                         #{order.number}
-                      </span>
+                      </Link>
                       <span className="ml-2 text-xs text-muted-foreground">
                         {order._count.items}{" "}
                         {order._count.items === 1 ? "ítem" : "ítems"}
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <p className="truncate">{order.customerName}</p>
-                      <p className="truncate text-xs text-muted-foreground">
-                        {order.email}
-                      </p>
+                      <Link href={`/admin/pedidos/${order.id}`} className="block">
+                        <p className="truncate">{order.customerName}</p>
+                        <p className="truncate text-xs text-muted-foreground">
+                          {order.email}
+                        </p>
+                      </Link>
                     </td>
                     <td className="hidden px-4 py-3 text-muted-foreground sm:table-cell">
                       {formatDate(order.createdAt, { dateStyle: "medium" })}
@@ -105,6 +113,13 @@ export default async function AdminOrdersPage() {
           </table>
         </div>
       )}
+
+      <AdminPagination
+        basePath="/admin/pedidos"
+        page={page}
+        pageSize={PAGE_SIZE}
+        total={total}
+      />
     </div>
   );
 }

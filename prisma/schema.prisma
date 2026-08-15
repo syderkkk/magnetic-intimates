@@ -32,24 +32,55 @@ model Role {
 }
 
 model User {
-  id           String            @id @default(cuid())
-  email        String            @unique
-  name         String?
-  passwordHash String?           @map("password_hash") // argon2id (null para OAuth futuro)
-  phone        String?
-  isActive     Boolean           @default(true) @map("is_active")
-  roleId       String            @map("role_id")
-  role         Role              @relation(fields: [roleId], references: [id])
-  sessions     Session[]
-  carts        Cart[]
-  orders       Order[]
-  addresses    ShippingAddress[]
-  auditLogs    AuditLog[]
-  createdAt    DateTime          @default(now()) @map("created_at")
-  updatedAt    DateTime          @updatedAt @map("updated_at")
+  id                  String               @id @default(cuid())
+  email               String               @unique
+  name                String?
+  passwordHash        String?              @map("password_hash") // argon2id (null para OAuth futuro)
+  phone               String?
+  isActive            Boolean              @default(true) @map("is_active")
+  roleId              String               @map("role_id")
+  role                Role                 @relation(fields: [roleId], references: [id])
+  sessions            Session[]
+  carts               Cart[]
+  orders              Order[]
+  addresses           ShippingAddress[]
+  auditLogs           AuditLog[]
+  passwordResetTokens PasswordResetToken[]
+  createdAt           DateTime             @default(now()) @map("created_at")
+  updatedAt           DateTime             @updatedAt @map("updated_at")
 
   @@index([roleId])
   @@map("users")
+}
+
+/**
+ * Token de un solo uso para recuperar contraseña (CLAUDE.md §7.6: 15 min).
+ */
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique @map("token_hash") // hash del token; el token crudo nunca se guarda
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@map("password_reset_tokens")
+}
+
+/**
+ * Intentos de login fallidos por correo, para el bloqueo tras 5 intentos
+ * (CLAUDE.md §7.6). Persistido en BD (no en memoria del proceso) para que el
+ * bloqueo sea confiable entre invocaciones serverless.
+ */
+model LoginAttempt {
+  email     String   @id
+  count     Int      @default(1)
+  resetAt   DateTime @map("reset_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("login_attempts")
 }
 
 model Session {
@@ -90,7 +121,7 @@ model Product {
   composition         String?
   priceCents          Int              @map("price_cents")
   compareAtPriceCents Int?             @map("compare_at_price_cents")
-  badge               String?          // nuevo | bestseller | oferta
+  badge               String? // nuevo | bestseller | oferta
   categoryId          String           @map("category_id")
   category            Category         @relation(fields: [categoryId], references: [id])
   isActive            Boolean          @default(true) @map("is_active")
@@ -201,7 +232,9 @@ model CartItem {
 
 // ───────────────────────────────────── Ventas ────────────────────────────────
 
-/** Máquina de estados del pedido (CLAUDE.md §11.2, `lib/order-status.ts`). */
+/**
+ * Máquina de estados del pedido (CLAUDE.md §11.2, `lib/order-status.ts`).
+ */
 enum OrderStatus {
   pendiente
   pagado
@@ -211,7 +244,9 @@ enum OrderStatus {
   reembolsado
 }
 
-/** Estado de cada intento de pago registrado en `payments`. */
+/**
+ * Estado de cada intento de pago registrado en `payments`.
+ */
 enum PaymentStatus {
   pendiente
   aprobado

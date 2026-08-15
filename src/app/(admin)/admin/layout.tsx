@@ -4,10 +4,7 @@ import { redirect } from "next/navigation";
 import { logout } from "@/actions/auth";
 import { AdminNav } from "@/components/admin/admin-nav";
 import { Logo } from "@/components/shop/logo";
-import { auth } from "@/lib/auth";
-
-/** Roles con acceso al panel. */
-const ADMIN_ROLES = ["admin", "editor"];
+import { getAdminSession } from "@/lib/admin-auth";
 
 /**
  * Layout del panel de administración. Protege TODO /admin: valida sesión y rol
@@ -18,10 +15,8 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await auth();
-  if (!session?.user || !ADMIN_ROLES.includes(session.user.role)) {
-    redirect("/login");
-  }
+  const session = await getAdminSession();
+  if (!session) redirect("/login");
 
   return (
     <div className="min-h-svh bg-muted/30">
@@ -34,7 +29,7 @@ export default async function AdminLayout({
           <p className="px-2 pt-2 pb-3 text-[11px] tracking-wider text-muted-foreground uppercase">
             Administración
           </p>
-          <AdminNav />
+          <AdminNav role={session.user.role} />
 
           <form action={logout} className="mt-auto border-t pt-3">
             <p className="truncate px-2 pb-2 text-xs text-muted-foreground">
@@ -68,7 +63,7 @@ export default async function AdminLayout({
             </form>
           </div>
           <div className="mb-6 lg:hidden">
-            <AdminNav />
+            <AdminNav role={session.user.role} />
           </div>
 
           {children}

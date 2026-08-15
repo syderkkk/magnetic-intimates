@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { AdminPagination } from "@/components/admin/admin-pagination";
 import { Button } from "@/components/ui/button";
 import { db } from "@/lib/db";
 import { formatPrice } from "@/lib/money";
@@ -11,21 +12,35 @@ import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Productos" };
 
-export default async function AdminProductsPage() {
-  const products = await db.product.findMany({
-    include: {
-      category: true,
-      images: { where: { isPrimary: true }, take: 1 },
-      variants: { select: { stock: true } },
-    },
-    orderBy: { createdAt: "asc" },
-  });
+const PAGE_SIZE = 20;
+
+interface Props {
+  searchParams: Promise<{ page?: string }>;
+}
+
+export default async function AdminProductsPage({ searchParams }: Props) {
+  const { page: pageParam } = await searchParams;
+  const page = Math.max(1, Number(pageParam) || 1);
+
+  const [products, total] = await Promise.all([
+    db.product.findMany({
+      include: {
+        category: true,
+        images: { where: { isPrimary: true }, take: 1 },
+        variants: { select: { stock: true } },
+      },
+      orderBy: { createdAt: "asc" },
+      skip: (page - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
+    }),
+    db.product.count(),
+  ]);
 
   return (
     <div>
       <AdminPageHeader
         title="Productos"
-        description={`${products.length} ${products.length === 1 ? "producto" : "productos"}`}
+        description={`${total} ${total === 1 ? "producto" : "productos"}`}
       >
         <Button asChild className="h-10 rounded-full px-5 text-sm">
           <Link href="/admin/productos/nuevo">
@@ -128,6 +143,13 @@ export default async function AdminProductsPage() {
           </tbody>
         </table>
       </div>
+
+      <AdminPagination
+        basePath="/admin/productos"
+        page={page}
+        pageSize={PAGE_SIZE}
+        total={total}
+      />
     </div>
   );
 }

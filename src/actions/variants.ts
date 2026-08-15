@@ -115,7 +115,7 @@ export async function updateVariantStock(input: unknown): Promise<ActionResult> 
   return { success: true };
 }
 
-/** Elimina una variante. */
+/** Elimina una variante (solo si no está en ningún carrito activo). */
 export async function deleteProductVariant(
   formData: FormData,
 ): Promise<ActionResult> {
@@ -128,7 +128,21 @@ export async function deleteProductVariant(
   });
   if (!variant) return { success: false, error: "Variante no encontrada." };
 
-  await db.productVariant.delete({ where: { id: variantId } });
+  const cartItemsCount = await db.cartItem.count({ where: { variantId } });
+  if (cartItemsCount > 0) {
+    return {
+      success: false,
+      error:
+        "No se puede eliminar: está en el carrito de al menos un cliente. Espera a que expire o pon el stock en 0.",
+    };
+  }
+
+  try {
+    await db.productVariant.delete({ where: { id: variantId } });
+  } catch {
+    return { success: false, error: "No se pudo eliminar la variante." };
+  }
+
   await recordAudit({
     userId: session.user.id,
     action: "deleted",
